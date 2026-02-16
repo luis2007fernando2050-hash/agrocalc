@@ -1,0 +1,110 @@
+<!DOCTYPE html><html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgroCalc Pro - Sistema Profissional de Irrigação</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+body {font-family: Arial, sans-serif; background:#f4f7f6; margin:0;}
+header {background:#145a32; color:white; padding:20px; text-align:center;}
+.container {max-width:900px; margin:30px auto; background:white; padding:25px; border-radius:12px; box-shadow:0 8px 20px rgba(0,0,0,0.1);} 
+input, select, button {width:100%; padding:12px; margin:8px 0; border-radius:6px; border:1px solid #ccc;}
+button {background:#145a32; color:white; font-weight:bold; cursor:pointer;}
+button:hover {background:#0e3d22;}
+.resultado {margin-top:20px; padding:20px; background:#eef7f2; border-left:6px solid #145a32;}
+.hidden {display:none;}
+.topbar {display:flex; justify-content:space-between; align-items:center;}
+.badge {background:#27ae60; padding:5px 10px; border-radius:20px; font-size:12px;}
+</style>
+</head>
+<body><header>
+    <h1>AgroCalc Pro</h1>
+    <p>Sistema Profissional de Dimensionamento de Irrigação</p>
+</header><div class="container" id="loginBox">
+    <h2>Acesso ao Sistema</h2>
+    <input type="text" id="usuario" placeholder="Usuário">
+    <input type="password" id="senha" placeholder="Senha">
+    <button onclick="login()">Entrar</button>
+    <p><strong>Modo demonstração:</strong> usuário: admin | senha: 1234</p>
+</div><div class="container hidden" id="appBox">
+    <div class="topbar">
+        <h2>Novo Projeto</h2>
+        <span class="badge">Versão Profissional</span>
+    </div><label>Potência da bomba (CV)</label>
+<input type="number" id="potencia">
+
+<label>Distância da bomba até o plantio (m)</label>
+<input type="number" id="distancia">
+
+<label>Tipo de cultura</label>
+<select id="cultura">
+    <option value="alface">Alface</option>
+    <option value="tomate">Tomate</option>
+    <option value="morango">Morango</option>
+    <option value="banana">Banana</option>
+</select>
+
+<label>Número de fileiras</label>
+<input type="number" id="fileiras">
+
+<label>Comprimento de cada fileira (m)</label>
+<input type="number" id="comprimento">
+
+<button onclick="calcularSistema()">Calcular Sistema</button>
+<button onclick="gerarPDF()">Gerar PDF do Projeto</button>
+
+<div class="resultado hidden" id="resultado"></div>
+
+</div><script>
+function login(){
+    const u = document.getElementById('usuario').value;
+    const s = document.getElementById('senha').value;
+    if(u === 'admin' && s === '1234'){
+        document.getElementById('loginBox').classList.add('hidden');
+        document.getElementById('appBox').classList.remove('hidden');
+    } else {
+        alert('Usuário ou senha incorretos');
+    }
+}
+
+let relatorioTexto = "";
+
+function calcularSistema(){
+    const potencia = parseFloat(document.getElementById('potencia').value);
+    const distancia = parseFloat(document.getElementById('distancia').value);
+    const cultura = document.getElementById('cultura').value;
+    const fileiras = parseInt(document.getElementById('fileiras').value);
+    const comprimento = parseFloat(document.getElementById('comprimento').value);
+
+    if(!potencia || !distancia || !fileiras || !comprimento){
+        alert('Preencha todos os campos');
+        return;
+    }
+
+    let vazaoPlanta, espacamento;
+
+    if(cultura === 'alface'){ vazaoPlanta=2; espacamento=0.30; }
+    else if(cultura === 'tomate'){ vazaoPlanta=4; espacamento=0.40; }
+    else if(cultura === 'morango'){ vazaoPlanta=1.5; espacamento=0.25; }
+    else { vazaoPlanta=8; espacamento=2; }
+
+    const plantasPorFileira = comprimento/espacamento;
+    const totalPlantas = plantasPorFileira*fileiras;
+    const vazaoTotal = totalPlantas*vazaoPlanta;
+    const tuboPrincipal = potencia>=1 ? '32mm' : '25mm';
+
+    relatorioTexto = `Projeto de Irrigação - AgroCalc Pro\n\nCultura: ${cultura}\nTotal de plantas: ${Math.round(totalPlantas)}\nVazão total: ${Math.round(vazaoTotal)} L/h\nTubulação principal: ${tuboPrincipal}\nMangueira secundária: 16mm\nPressão recomendada: 10 a 15 mca\n\nObservação: Conferir curva da bomba para validação final.`;
+
+    document.getElementById('resultado').classList.remove('hidden');
+    document.getElementById('resultado').innerHTML = relatorioTexto.replace(/\n/g,'<br>');
+}
+
+async function gerarPDF(){
+    if(!relatorioTexto){ alert('Calcule o projeto primeiro'); return; }
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.text(relatorioTexto, 10, 10);
+    doc.save('Projeto_Irrigacao_AgroCalc.pdf');
+}
+</script></body>
+</html>
