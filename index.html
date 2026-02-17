@@ -1,34 +1,34 @@
 <script>
-function login(){
-const u=document.getElementById('usuario').value;
-const s=document.getElementById('senha').value;
-if(u==='admin'&&s==='1234'){
+document.addEventListener("DOMContentLoaded", function(){
+
+let relatorioTexto = "";
+
+// ===================== LOGIN =====================
+window.login = function(){
+const u=document.getElementById('usuario').value.trim();
+const s=document.getElementById('senha').value.trim();
+
+if(u==="admin" && s==="1234"){
 document.getElementById('loginBox').classList.add('hidden');
 document.getElementById('appBox').classList.remove('hidden');
 }else{
-alert('Usuário ou senha incorretos');
+alert("Usuário ou senha incorretos");
 }
-}
+};
 
-let relatorioTexto="";
-
-// ===============================
-// FUNÇÕES TÉCNICAS NOVAS
-// ===============================
-
-// Hazen-Williams (perda de carga em mca)
-function perdaCargaHazenWilliams(Q_m3h, D_mm, L_m){
-const Q = Q_m3h/3600; // m³/s
-const D = D_mm/1000;  // m
-const C = 140; // PEAD
-return 10.67 * L_m * Math.pow(Q,1.852) /
-       (Math.pow(C,1.852) * Math.pow(D,4.87));
+// ===================== FUNÇÕES TÉCNICAS =====================
+function perdaCargaHazenWilliams(Q_m3h,D_mm,L_m){
+if(Q_m3h<=0) return 0;
+const Q=Q_m3h/3600;
+const D=D_mm/1000;
+const C=140;
+return 10.67*L_m*Math.pow(Q,1.852)/
+(Math.pow(C,1.852)*Math.pow(D,4.87));
 }
 
-// escolhe diâmetro pela velocidade recomendada
 function escolherDiametro(Q_m3h){
-const diametros=[25,32,40,50,63,75];
-for(let d of diametros){
+const diam=[25,32,40,50,63,75];
+for(let d of diam){
 const area=Math.PI*Math.pow(d/1000,2)/4;
 const v=(Q_m3h/3600)/area;
 if(v<=1.5) return d;
@@ -36,14 +36,12 @@ if(v<=1.5) return d;
 return 75;
 }
 
-// ETc simplificada (mm/dia)
 function etcEstimado(cultura,clima){
 let base=4;
-
-if(clima==='semiarido') base=7;
-else if(clima==='tropical') base=5;
-else if(clima==='equatorial') base=6;
-else if(clima==='temperado') base=4;
+if(clima==="semiarido") base=7;
+else if(clima==="tropical") base=5;
+else if(clima==="equatorial") base=6;
+else if(clima==="temperado") base=4;
 
 const kc={
 milho:1.15, soja:1.1, tomate:1.15,
@@ -53,85 +51,72 @@ alface:1.0, feijao:1.05, banana:1.2
 return base*(kc[cultura]||1.0);
 }
 
-function calcularSistema(){
+// ===================== CÁLCULO PRINCIPAL =====================
+window.calcularSistema = function(){
 
-const potenciaDisponivel=parseFloat(document.getElementById('potencia').value);
-const distancia=parseFloat(document.getElementById('distancia').value);
+const potenciaDisponivel=parseFloat(document.getElementById('potencia').value)||0;
+const distancia=parseFloat(document.getElementById('distancia').value)||0;
 const cultura=document.getElementById('cultura').value;
-const fileiras=parseInt(document.getElementById('fileiras').value);
-const comprimento=parseFloat(document.getElementById('comprimento').value);
+const fileiras=parseInt(document.getElementById('fileiras').value)||0;
+const comprimento=parseFloat(document.getElementById('comprimento').value)||0;
 const clima=document.getElementById('clima').value;
-const nomeProdutor=document.getElementById('nomeProdutor').value;
-const nomeAgronomo=document.getElementById('nomeAgronomo').value;
-const cidade=document.getElementById('cidade').value;
-const municipio=document.getElementById('municipio').value;
-const precoEnergia=parseFloat(document.getElementById('precoEnergia').value);
+const nomeProdutor=document.getElementById('nomeProdutor').value.trim();
+const nomeAgronomo=document.getElementById('nomeAgronomo').value.trim();
+const cidade=document.getElementById('cidade').value.trim();
+const municipio=document.getElementById('municipio').value.trim();
+const precoEnergia=parseFloat(document.getElementById('precoEnergia').value)||0;
 
-if([potenciaDisponivel,distancia,fileiras,comprimento,precoEnergia].some(isNaN)){
-alert('Preencha todos os campos');
+if(!nomeProdutor||!nomeAgronomo||!cidade||!municipio||
+fileiras<=0||comprimento<=0||precoEnergia<=0){
+alert("Preencha todos os campos corretamente.");
 return;
 }
 
-// ===============================
-// DADOS CULTURA (simplificado)
-// ===============================
+// ---------- Dados cultura ----------
 let vazaoPlanta=3.5;
 let espacamento=0.5;
 
-if(cultura==='tomate'){vazaoPlanta=4;espacamento=0.4;}
-if(cultura==='alface'){vazaoPlanta=2;espacamento=0.3;}
-if(cultura==='soja'){vazaoPlanta=2.5;espacamento=0.45;}
-if(cultura==='feijao'){vazaoPlanta=2.8;espacamento=0.4;}
+if(cultura==="tomate"){vazaoPlanta=4;espacamento=0.4;}
+if(cultura==="alface"){vazaoPlanta=2;espacamento=0.3;}
+if(cultura==="soja"){vazaoPlanta=2.5;espacamento=0.45;}
+if(cultura==="feijao"){vazaoPlanta=2.8;espacamento=0.4;}
 
-// ===============================
-// CÁLCULOS AGRONÔMICOS
-// ===============================
-const plantasPorFileira=Math.floor(comprimento/espacamento);
+// ---------- Agronomia ----------
+const plantasPorFileira=Math.max(1,Math.floor(comprimento/espacamento));
 const totalPlantas=plantasPorFileira*fileiras;
 
-const vazaoTotal=totalPlantas*vazaoPlanta; // L/h
+const vazaoTotal=totalPlantas*vazaoPlanta;
 const vazao_m3h=vazaoTotal/1000;
 
-// área aproximada
 const espacamentoLinhas=0.8;
-const area=fileiras*comprimento*espacamentoLinhas;
+const area=Math.max(1,fileiras*comprimento*espacamentoLinhas);
 
-// ETc
-const etc=etcEstimado(cultura,clima); // mm/dia
-const volumeDia=(etc/1000)*area; // m³/dia
+const etc=etcEstimado(cultura,clima);
+const volumeDia=(etc/1000)*area;
 
-let tempoIrrigacao=volumeDia/vazao_m3h;
-if(tempoIrrigacao<0.5) tempoIrrigacao=0.5;
+let tempoIrrigacao = volumeDia/(vazao_m3h||1);
+if(!isFinite(tempoIrrigacao)||tempoIrrigacao<=0) tempoIrrigacao=1;
 
-// ===============================
-// HIDRÁULICA
-// ===============================
+// ---------- Hidráulica ----------
 const diametro=escolherDiametro(vazao_m3h);
 const perdaCarga=perdaCargaHazenWilliams(vazao_m3h,diametro,distancia);
 
-// HMT realista
 const HMT=12+perdaCarga+(distancia*0.01);
 
-// potência considerando eficiência
 const eficiencia=0.65;
 const potenciaNecessaria=(vazao_m3h*HMT)/(75*eficiencia);
 
-// seleção bomba
-let bombaSugerida=`${Math.ceil(potenciaNecessaria)} CV`;
+const bombaSugerida=Math.ceil(Math.max(0.5,potenciaNecessaria))+" CV";
 
-let metodoIrrigacao =
-(cultura==='alface'||cultura==='tomate')?
+const metodoIrrigacao=
+(cultura==="alface"||cultura==="tomate")?
 "Gotejamento":"Aspersão";
 
-// ===============================
-// ENERGIA (CORRIGIDO)
-// ===============================
+// ---------- Energia ----------
 const kW=potenciaNecessaria*0.7355;
 const custoEnergia=(kW*tempoIrrigacao*30*precoEnergia).toFixed(2);
 
-// ===============================
-// RELATÓRIO
-// ===============================
+// ---------- Relatório ----------
 relatorioTexto=`Projeto de Irrigação - AgroCalc Pro
 
 Produtor: ${nomeProdutor}
@@ -143,40 +128,43 @@ Total de plantas: ${totalPlantas}
 Vazão total: ${Math.round(vazaoTotal)} L/h
 
 --- Dimensionamento Hidráulico ---
-Diâmetro principal calculado: ${diametro} mm PEAD
-Perda de carga (Hazen-Williams): ${perdaCarga.toFixed(2)} mca
-Altura manométrica total (HMT): ${HMT.toFixed(2)} mca
-Potência hidráulica requerida: ${potenciaNecessaria.toFixed(2)} CV
+Diâmetro principal: ${diametro} mm PEAD
+Perda de carga: ${perdaCarga.toFixed(2)} mca
+HMT: ${HMT.toFixed(2)} mca
+Potência requerida: ${potenciaNecessaria.toFixed(2)} CV
 Bomba sugerida: ${bombaSugerida}
 Método recomendado: ${metodoIrrigacao}
 
---- Manejo de Irrigação ---
+--- Manejo ---
 ETc estimada: ${etc.toFixed(2)} mm/dia
 Tempo diário estimado: ${tempoIrrigacao.toFixed(2)} h/dia
 
 --- Energia ---
 Custo mensal estimado: R$ ${custoEnergia}
 
-Obs: Valores para pré-dimensionamento. Validar curva real da bomba.`;
+Obs: Pré-dimensionamento técnico. Validar curva real da bomba.`;
 
-// mostrar
 document.getElementById('resultadoTela').innerHTML=
-relatorioTexto.replace(/\n/g,'<br>');
+relatorioTexto.replace(/\n/g,"<br>");
+
 document.getElementById('appBox').classList.add('hidden');
 document.getElementById('resultadoBox').classList.remove('hidden');
-}
+};
 
-function voltarProjeto(){
+// ===================== OUTROS =====================
+window.voltarProjeto=function(){
 document.getElementById('resultadoBox').classList.add('hidden');
 document.getElementById('appBox').classList.remove('hidden');
-}
+};
 
-async function gerarPDF(){
-if(!relatorioTexto){alert('Calcule o projeto primeiro');return;}
-const { jsPDF } = window.jspdf;
+window.gerarPDF=async function(){
+if(!relatorioTexto){alert("Calcule primeiro");return;}
+const { jsPDF }=window.jspdf;
 const doc=new jsPDF();
 const linhas=doc.splitTextToSize(relatorioTexto,180);
 doc.text(linhas,10,10);
-doc.save('Projeto_Irrigacao_AgroCalc.pdf');
-}
+doc.save("Projeto_Irrigacao_AgroCalc.pdf");
+};
+
+});
 </script>
