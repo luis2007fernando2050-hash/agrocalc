@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AgroCalc Pro - Sistema Profissional de Irrigação</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
 <style>
 body {font-family: Arial, sans-serif; background:#f4f7f6; margin:0;}
 header {background:#145a32; color:white; padding:20px; text-align:center;}
@@ -19,7 +18,6 @@ button:hover {background:#0e3d22;}
 .badge {background:#27ae60; padding:5px 10px; border-radius:20px; font-size:12px; color:white;}
 </style>
 </head>
-
 <body>
 
 <header>
@@ -36,30 +34,25 @@ button:hover {background:#0e3d22;}
 <p><strong>Modo demonstração:</strong> usuário: admin | senha: 1234</p>
 </div>
 
-<!-- APP -->
+<!-- FORMULÁRIO DO PROJETO -->
 <div class="container hidden" id="appBox">
 <div class="topbar">
 <h2>Novo Projeto</h2>
 <span class="badge">Versão Profissional</span>
 </div>
 
-<!-- NOVOS CAMPOS -->
-<label>Nome do Produtor</label>
-<input type="text" id="nomeProdutor">
+<h3>Informações do Produtor</h3>
+<input type="text" id="nomeProdutor" placeholder="Nome do produtor">
+<input type="text" id="nomeAgronomo" placeholder="Nome do engenheiro agrônomo">
 
-<label>Nome do Agrônomo</label>
-<input type="text" id="nomeAgronomo">
+<h3>Localização e Energia</h3>
+<input type="text" id="cidade" placeholder="Cidade">
+<input type="text" id="municipio" placeholder="Município/UF">
+<input type="number" id="precoEnergia" placeholder="Preço da energia (R$/kWh)">
 
-<label>Cidade/Município</label>
-<input type="text" id="cidade">
-
-<label>Preço da energia local (R$/kWh)</label>
-<input type="number" id="precoEnergia" step="0.01" placeholder="Ex: 0.80">
-
-<!-- CAMPOS EXISTENTES -->
+<h3>Sistema de Irrigação</h3>
 <label>Potência da bomba disponível (CV)</label>
 <input type="number" id="potencia">
-
 <label>Distância da bomba até o plantio (m)</label>
 <input type="number" id="distancia">
 
@@ -77,7 +70,6 @@ button:hover {background:#0e3d22;}
 <option value="beterraba">Beterraba</option>
 <option value="rucula">Rúcula</option>
 </optgroup>
-
 <optgroup label="🍎 Frutíferas">
 <option value="laranja">Laranja</option>
 <option value="limao">Limão</option>
@@ -90,7 +82,6 @@ button:hover {background:#0e3d22;}
 <option value="melao">Melão</option>
 <option value="abacaxi">Abacaxi</option>
 </optgroup>
-
 <optgroup label="🌾 Grãos e Cereais">
 <option value="milho">Milho</option>
 <option value="soja">Soja</option>
@@ -98,22 +89,20 @@ button:hover {background:#0e3d22;}
 <option value="trigo">Trigo</option>
 <option value="feijao">Feijão</option>
 </optgroup>
-
-</select>
-
-<label>Clima da região</label>
-<select id="clima">
-<option value="seco">Seco</option>
-<option value="semiarido">Semiárido</option>
-<option value="tropical">Tropical</option>
-<option value="temperado">Temperado</option>
 </select>
 
 <label>Número de fileiras</label>
 <input type="number" id="fileiras">
-
 <label>Comprimento de cada fileira (m)</label>
 <input type="number" id="comprimento">
+
+<label>Clima da região</label>
+<select id="clima">
+<option value="tropical">Tropical</option>
+<option value="semiarido">Semiárido</option>
+<option value="temperado">Temperado</option>
+<option value="equatorial">Equatorial</option>
+</select>
 
 <button onclick="calcularSistema()">Calcular Sistema</button>
 </div>
@@ -124,9 +113,7 @@ button:hover {background:#0e3d22;}
 <h2>Resultado do Projeto</h2>
 <span class="badge">Relatório Técnico</span>
 </div>
-
 <div class="resultado" id="resultadoTela"></div>
-
 <button onclick="voltarProjeto()">← Voltar ao Projeto</button>
 <button onclick="gerarPDF()">Gerar PDF do Projeto</button>
 </div>
@@ -146,26 +133,28 @@ alert('Usuário ou senha incorretos');
 let relatorioTexto="";
 
 function calcularSistema(){
-const nomeProdutor=document.getElementById('nomeProdutor').value;
-const nomeAgronomo=document.getElementById('nomeAgronomo').value;
-const cidade=document.getElementById('cidade').value;
-const precoEnergia=parseFloat(document.getElementById('precoEnergia').value);
 const potenciaDisponivel=parseFloat(document.getElementById('potencia').value);
 const distancia=parseFloat(document.getElementById('distancia').value);
 const cultura=document.getElementById('cultura').value;
 const fileiras=parseInt(document.getElementById('fileiras').value);
 const comprimento=parseFloat(document.getElementById('comprimento').value);
 const clima=document.getElementById('clima').value;
+const nomeProdutor=document.getElementById('nomeProdutor').value;
+const nomeAgronomo=document.getElementById('nomeAgronomo').value;
+const cidade=document.getElementById('cidade').value;
+const municipio=document.getElementById('municipio').value;
+const precoEnergia=parseFloat(document.getElementById('precoEnergia').value);
 
-if(!nomeProdutor || !nomeAgronomo || !cidade || isNaN(precoEnergia) || isNaN(potenciaDisponivel) || isNaN(distancia) || isNaN(fileiras) || isNaN(comprimento)){
-    alert('Preencha todos os campos corretamente');
-    return;
+if([potenciaDisponivel,distancia,fileiras,comprimento,precoEnergia].some(isNaN)||!nomeProdutor||!nomeAgronomo||!cidade||!municipio){
+alert('Preencha todos os campos corretamente');
+return;
 }
 
+// Vazão e espaçamento
 let vazaoPlanta=2;
 let espacamento=0.3;
 
-// ================= CULTURAS =================
+// Cultura
 if(cultura==='alface'){vazaoPlanta=2;espacamento=0.30;}
 else if(cultura==='tomate'){vazaoPlanta=4;espacamento=0.40;}
 else if(cultura==='cenoura'){vazaoPlanta=1.2;espacamento=0.25;}
@@ -192,17 +181,22 @@ else if(cultura==='arroz'){vazaoPlanta=6;espacamento=0.30;}
 else if(cultura==='trigo'){vazaoPlanta=2;espacamento=0.20;}
 else if(cultura==='feijao'){vazaoPlanta=2.8;espacamento=0.40;}
 
-// ================= CÁLCULOS =================
+// Cálculos
 const plantasPorFileira=Math.floor(comprimento/espacamento);
 const totalPlantas=plantasPorFileira*fileiras;
-const vazaoTotal=totalPlantas*vazaoPlanta; 
+const vazaoTotal=totalPlantas*vazaoPlanta; // L/h
 const vazao_m3h=vazaoTotal/1000;
 
+// Perda de carga simplificada
 const perdaCarga=(distancia/100)*2.5;
-const pressaoServico=12;
-const HMT=(distancia*0.01)+perdaCarga+pressaoServico;
+
+// Altura manométrica total
+const HMT=(distancia*0.01)+perdaCarga+12;
+
+// Potência requerida (simplificada)
 const potenciaNecessaria=(vazao_m3h*HMT)/75;
 
+// Seleção automática da bomba
 let bombaSugerida="";
 if(potenciaNecessaria<=0.5) bombaSugerida="Bomba 0,5 CV";
 else if(potenciaNecessaria<=1) bombaSugerida="Bomba 1 CV";
@@ -210,35 +204,37 @@ else if(potenciaNecessaria<=2) bombaSugerida="Bomba 2 CV";
 else if(potenciaNecessaria<=3) bombaSugerida="Bomba 3 CV";
 else bombaSugerida="Bomba acima de 3 CV";
 
-const tuboPrincipal=potenciaDisponivel>=1?'32mm':'25mm';
+// Tubulação recomendada baseada na vazão
+let tuboPrincipal="";
+if(vazaoTotal<100) tuboPrincipal="25mm PEAD";
+else if(vazaoTotal<300) tuboPrincipal="32mm PEAD";
+else if(vazaoTotal<500) tuboPrincipal="40mm PEAD";
+else tuboPrincipal="50mm PEAD";
 
-let metodoIrrigacao="Gotejamento";
-let tubulacaoRecomendada="PEAD 16-32mm";
-if(cultura==='milho' || cultura==='soja' || cultura==='trigo' || cultura==='feijao' || cultura==='arroz'){
-    metodoIrrigacao="Aspersão";
-    tubulacaoRecomendada="PEAD 32-40mm";
-} else if(cultura==='laranja' || cultura==='limao' || cultura==='manga' || cultura==='goiaba' || cultura==='banana' || cultura==='mamao'){
-    metodoIrrigacao="Gotejamento localizado";
-    tubulacaoRecomendada="PEAD 25-32mm";
+// Recomendação método irrigação
+let metodoIrrigacao="";
+if(cultura==='alface'||cultura==='tomate'||cultura==='morango'||cultura==='pepino'||cultura==='rucula'){
+metodoIrrigacao="Gotejamento";
+}else{
+metodoIrrigacao="Aspersão";
 }
 
-let tempoIrrigacao=0; 
-if(clima==='seco'){ tempoIrrigacao=8; }
-else if(clima==='semiarido'){ tempoIrrigacao=6; }
-else if(clima==='tropical'){ tempoIrrigacao=4; }
-else if(clima==='temperado'){ tempoIrrigacao=2; }
+// Tempo de irrigação diário baseado no clima (simplificado)
+let tempoIrrigacao=1; // horas
+if(clima==='tropical') tempoIrrigacao=1.5;
+else if(clima==='semiarido') tempoIrrigacao=2;
+else if(clima==='temperado') tempoIrrigacao=1;
+else if(clima==='equatorial') tempoIrrigacao=2;
 
-// ================= CUSTO ESTIMADO DE ENERGIA =================
-const energia_kWh = potenciaDisponivel * 0.7355; // CV → kW
-const custoDiario = energia_kWh * tempoIrrigacao * precoEnergia;
-const custoMensal = custoDiario * 30;
+// Custo mensal de energia
+const custoEnergia=(potenciaDisponivel*0.7355*tempoIrrigacao*30*precoEnergia).toFixed(2);
 
-// ================= RELATÓRIO =================
+// Relatório
 relatorioTexto=`Projeto de Irrigação - AgroCalc Pro
 
 Produtor: ${nomeProdutor}
-Agrônomo: ${nomeAgronomo}
-Cidade/Município: ${cidade}
+Engenheiro Agrônomo: ${nomeAgronomo}
+Cidade: ${cidade} / ${municipio}
 
 Cultura: ${cultura}
 Total de plantas: ${Math.round(totalPlantas)}
@@ -248,18 +244,13 @@ Vazão total: ${Math.round(vazaoTotal)} L/h
 Perda de carga estimada: ${perdaCarga.toFixed(2)} mca
 Altura manométrica total (HMT): ${HMT.toFixed(2)} mca
 Potência hidráulica requerida: ${potenciaNecessaria.toFixed(2)} CV
-
---- Seleção automática ---
 Bomba sugerida: ${bombaSugerida}
-Tubulação principal: ${tuboPrincipal} (recomendada: ${tubulacaoRecomendada})
+Tubulação principal: ${tuboPrincipal}
 Mangueira secundária: 16mm
-Método de irrigação sugerido: ${metodoIrrigacao}
-Tempo de irrigação diário recomendado: ${tempoIrrigacao} horas/dia
-
---- Estimativa de custo ---
-Custo estimado mensal de energia: R$ ${custoMensal.toFixed(2)}
-
 Pressão recomendada: 10 a 15 mca
+Método de irrigação recomendado: ${metodoIrrigacao}
+Tempo diário estimado de operação: ${tempoIrrigacao} h/dia
+Custo mensal estimado de energia: R$ ${custoEnergia}
 
 Observação: Conferir curva real da bomba para validação final.`;
 
