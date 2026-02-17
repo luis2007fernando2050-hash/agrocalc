@@ -1,58 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgroCalc Pro - Sistema Profissional de Irrigação</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+body {font-family: Arial, sans-serif; background:#f4f7f6; margin:0;}
+header {background:#145a32; color:white; padding:20px; text-align:center;}
+.container {max-width:900px; margin:30px auto; background:white; padding:25px; border-radius:12px; box-shadow:0 8px 20px rgba(0,0,0,0.1);}
+input, select, button {width:100%; padding:12px; margin:8px 0; border-radius:6px; border:1px solid #ccc;}
+button {background:#145a32; color:white; font-weight:bold; cursor:pointer;}
+button:hover {background:#0e3d22;}
+.resultado {margin-top:20px; padding:20px; background:#ffffff; border-left:6px solid #27ae60; line-height:1.6;}
+.hidden {display:none;}
+.topbar {display:flex; justify-content:space-between; align-items:center;}
+.badge {background:#27ae60; padding:5px 10px; border-radius:20px; font-size:12px; color:white;}
+</style>
+</head>
+<body>
+
+<header>
+<h1>AgroCalc Pro</h1>
+<p>Sistema Profissional de Dimensionamento de Irrigação</p>
+</header>
+
+<!-- LOGIN -->
+<div class="container" id="loginBox">
+<h2>Acesso ao Sistema</h2>
+<input type="text" id="usuario" placeholder="Usuário">
+<input type="password" id="senha" placeholder="Senha">
+<button onclick="login()">Entrar</button>
+<p><strong>Modo demonstração:</strong> usuário: admin | senha: 1234</p>
+</div>
+
+<!-- APP -->
+<div class="container hidden" id="appBox">
+<div class="topbar">
+<h2>Novo Projeto</h2>
+<span class="badge">Versão Profissional</span>
+</div>
+
+<label>Nome do Produtor</label>
+<input type="text" id="nomeProdutor">
+
+<label>Nome do Engenheiro Agrônomo</label>
+<input type="text" id="nomeAgronomo">
+
+<label>Cidade</label>
+<input type="text" id="cidade">
+
+<label>Município</label>
+<input type="text" id="municipio">
+
+<label>Potência da bomba disponível (CV)</label>
+<input type="number" id="potencia">
+
+<label>Distância da bomba até o plantio (m)</label>
+<input type="number" id="distancia">
+
+<label>Tipo de cultura</label>
+<select id="cultura">
+  <optgroup label="🥬 Hortaliças">
+    <option value="alface">Alface</option>
+    <option value="tomate">Tomate</option>
+    <option value="cenoura">Cenoura</option>
+    <option value="cebola">Cebola</option>
+    <option value="batata">Batata</option>
+    <option value="pepino">Pepino</option>
+    <option value="pimentao">Pimentão</option>
+    <option value="couve">Couve</option>
+    <option value="beterraba">Beterraba</option>
+    <option value="rucula">Rúcula</option>
+  </optgroup>
+  <optgroup label="🍎 Frutíferas">
+    <option value="laranja">Laranja</option>
+    <option value="limao">Limão</option>
+    <option value="manga">Manga</option>
+    <option value="goiaba">Goiaba</option>
+    <option value="mamao">Mamão</option>
+    <option value="banana">Banana</option>
+    <option value="morango">Morango</option>
+    <option value="melancia">Melancia</option>
+    <option value="melao">Melão</option>
+    <option value="abacaxi">Abacaxi</option>
+  </optgroup>
+  <optgroup label="🌾 Grãos e Cereais">
+    <option value="milho">Milho</option>
+    <option value="soja">Soja</option>
+    <option value="arroz">Arroz irrigado</option>
+    <option value="trigo">Trigo</option>
+    <option value="feijao">Feijão</option>
+  </optgroup>
+</select>
+
+<label>Clima da região</label>
+<select id="clima">
+  <option value="tropical">Tropical</option>
+  <option value="semiarido">Semiárido</option>
+  <option value="equatorial">Equatorial</option>
+  <option value="temperado">Temperado</option>
+</select>
+
+<label>Número de fileiras</label>
+<input type="number" id="fileiras">
+
+<label>Comprimento de cada fileira (m)</label>
+<input type="number" id="comprimento">
+
+<label>Preço da energia (R$/kWh)</label>
+<input type="number" id="precoEnergia" step="0.01">
+
+<button onclick="calcularSistema()">Calcular Sistema</button>
+</div>
+
+<!-- RESULTADO -->
+<div class="container hidden" id="resultadoBox">
+<div class="topbar">
+<h2>Resultado do Projeto</h2>
+<span class="badge">Relatório Técnico</span>
+</div>
+<div class="resultado" id="resultadoTela"></div>
+<button onclick="voltarProjeto()">← Voltar ao Projeto</button>
+<button onclick="gerarPDF()">Gerar PDF do Projeto</button>
+</div>
+
 <script>
 document.addEventListener("DOMContentLoaded", function(){
 
-let relatorioTexto = "";
+let relatorioTexto="";
 
 // ===================== LOGIN =====================
-window.login = function(){
-const u=document.getElementById('usuario').value.trim();
-const s=document.getElementById('senha').value.trim();
-
-if(u==="admin" && s==="1234"){
-document.getElementById('loginBox').classList.add('hidden');
-document.getElementById('appBox').classList.remove('hidden');
-}else{
-alert("Usuário ou senha incorretos");
-}
+window.login=function(){
+  const u=document.getElementById('usuario').value.trim();
+  const s=document.getElementById('senha').value.trim();
+  if(u==="admin" && s==="1234"){
+    document.getElementById('loginBox').classList.add('hidden');
+    document.getElementById('appBox').classList.remove('hidden');
+  }else{
+    alert("Usuário ou senha incorretos");
+  }
 };
 
-// ===================== FUNÇÕES TÉCNICAS =====================
+// ===================== FUNÇÕES =====================
 function perdaCargaHazenWilliams(Q_m3h,D_mm,L_m){
-if(Q_m3h<=0) return 0;
-const Q=Q_m3h/3600;
-const D=D_mm/1000;
-const C=140;
-return 10.67*L_m*Math.pow(Q,1.852)/
-(Math.pow(C,1.852)*Math.pow(D,4.87));
+  if(Q_m3h<=0) return 0;
+  const Q=Q_m3h/3600;
+  const diam_m=D_mm/1000;
+  const C=140;
+  return 10.67*L_m*Math.pow(Q,1.852)/(Math.pow(C,1.852)*Math.pow(diam_m,4.87));
 }
 
 function escolherDiametro(Q_m3h){
-const diam=[25,32,40,50,63,75];
-for(let d of diam){
-const area=Math.PI*Math.pow(d/1000,2)/4;
-const v=(Q_m3h/3600)/area;
-if(v<=1.5) return d;
-}
-return 75;
+  const diam=[25,32,40,50,63,75];
+  for(let d of diam){
+    const area=Math.PI*Math.pow(d/1000,2)/4;
+    const v=(Q_m3h/3600)/area;
+    if(v<=1.5) return d;
+  }
+  return 75;
 }
 
 function etcEstimado(cultura,clima){
-let base=4;
-if(clima==="semiarido") base=7;
-else if(clima==="tropical") base=5;
-else if(clima==="equatorial") base=6;
-else if(clima==="temperado") base=4;
+  let base=4;
+  if(clima==="semiarido") base=7;
+  else if(clima==="tropical") base=5;
+  else if(clima==="equatorial") base=6;
+  else if(clima==="temperado") base=4;
 
-const kc={
-milho:1.15, soja:1.1, tomate:1.15,
-alface:1.0, feijao:1.05, banana:1.2
-};
+  const kc={
+    milho:1.15, soja:1.1, tomate:1.15,
+    alface:1.0, feijao:1.05, banana:1.2
+  };
 
-return base*(kc[cultura]||1.0);
+  return base*(kc[cultura]||1.0);
 }
 
 // ===================== CÁLCULO PRINCIPAL =====================
-window.calcularSistema = function(){
+window.calcularSistema=function(){
 
 const potenciaDisponivel=parseFloat(document.getElementById('potencia').value)||0;
 const distancia=parseFloat(document.getElementById('distancia').value)||0;
@@ -66,10 +191,9 @@ const cidade=document.getElementById('cidade').value.trim();
 const municipio=document.getElementById('municipio').value.trim();
 const precoEnergia=parseFloat(document.getElementById('precoEnergia').value)||0;
 
-if(!nomeProdutor||!nomeAgronomo||!cidade||!municipio||
-fileiras<=0||comprimento<=0||precoEnergia<=0){
-alert("Preencha todos os campos corretamente.");
-return;
+if(!nomeProdutor||!nomeAgronomo||!cidade||!municipio||fileiras<=0||comprimento<=0||precoEnergia<=0){
+  alert("Preencha todos os campos corretamente.");
+  return;
 }
 
 // ---------- Dados cultura ----------
@@ -100,17 +224,13 @@ if(!isFinite(tempoIrrigacao)||tempoIrrigacao<=0) tempoIrrigacao=1;
 // ---------- Hidráulica ----------
 const diametro=escolherDiametro(vazao_m3h);
 const perdaCarga=perdaCargaHazenWilliams(vazao_m3h,diametro,distancia);
-
 const HMT=12+perdaCarga+(distancia*0.01);
 
 const eficiencia=0.65;
 const potenciaNecessaria=(vazao_m3h*HMT)/(75*eficiencia);
-
 const bombaSugerida=Math.ceil(Math.max(0.5,potenciaNecessaria))+" CV";
 
-const metodoIrrigacao=
-(cultura==="alface"||cultura==="tomate")?
-"Gotejamento":"Aspersão";
+const metodoIrrigacao=(cultura==="alface"||cultura==="tomate")?"Gotejamento":"Aspersão";
 
 // ---------- Energia ----------
 const kW=potenciaNecessaria*0.7355;
@@ -153,18 +273,19 @@ document.getElementById('resultadoBox').classList.remove('hidden');
 
 // ===================== OUTROS =====================
 window.voltarProjeto=function(){
-document.getElementById('resultadoBox').classList.add('hidden');
-document.getElementById('appBox').classList.remove('hidden');
+  document.getElementById('resultadoBox').classList.add('hidden');
+  document.getElementById('appBox').classList.remove('hidden');
 };
 
 window.gerarPDF=async function(){
-if(!relatorioTexto){alert("Calcule primeiro");return;}
-const { jsPDF }=window.jspdf;
-const doc=new jsPDF();
-const linhas=doc.splitTextToSize(relatorioTexto,180);
-doc.text(linhas,10,10);
-doc.save("Projeto_Irrigacao_AgroCalc.pdf");
+  if(!relatorioTexto){alert("Calcule primeiro");return;}
+  const { jsPDF }=window.jspdf;
+  const doc=new jsPDF();
+  const linhas=doc.splitTextToSize(relatorioTexto,180);
+  doc.text(linhas,10,10);
+  doc.save("Projeto_Irrigacao_AgroCalc.pdf");
 };
 
-});
 </script>
+</body>
+</html>
