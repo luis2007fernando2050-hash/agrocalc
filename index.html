@@ -1,211 +1,245 @@
-import React, { useState, useMemo } from "react"; import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"; import { Button } from "@/components/ui/button"; import { Input } from "@/components/ui/input"; import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; import { motion } from "framer-motion"; import { Droplets, Leaf, MapPin, Calculator } from "lucide-react";
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AgroCalc Pro - Plataforma Profissional</title>
 
-/**
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-=============================================================
-
-ENTERPRISE IRRIGATION PLANNING PLATFORM (Single‑file demo)
-
-Focus: Agronomists – Based on Embrapa technical references
-
-=============================================================
-
-✔ Multi‑crop database (families)
-
-✔ Climatic coefficient model (FAO/Embrapa inspired)
-
-✔ Material budget estimator
-
-✔ Technical report generator (separate page)
-
-✔ Planting layout blueprint
-
-✔ Ready for API integration (weather/soil)
-
-✔ Scalable architecture */
-
-
-// ============================================================= // 🌱 CROP DATABASE (Embrapa‑aligned reference ranges) // =============================================================
-
-const CROPS = { hortaliças: { label: "Hortaliças", items: { Alface: { kc: 0.95, rootDepth: 0.25, spacing: "0.30 x 0.30 m" }, Tomate: { kc: 1.15, rootDepth: 0.6, spacing: "1.0 x 0.5 m" }, Cenoura: { kc: 1.0, rootDepth: 0.3, spacing: "0.30 x 0.10 m" }, Cebola: { kc: 0.85, rootDepth: 0.3, spacing: "0.30 x 0.10 m" }, Batata: { kc: 1.1, rootDepth: 0.5, spacing: "0.80 x 0.30 m" }, Pepino: { kc: 1.0, rootDepth: 0.4, spacing: "1.0 x 0.5 m" }, Pimentão: { kc: 1.05, rootDepth: 0.5, spacing: "1.0 x 0.5 m" }, Couve: { kc: 1.05, rootDepth: 0.4, spacing: "0.80 x 0.50 m" }, Beterraba: { kc: 1.0, rootDepth: 0.3, spacing: "0.30 x 0.10 m" }, Rúcula: { kc: 0.9, rootDepth: 0.2, spacing: "0.25 x 0.10 m" }, }, }, frutíferas: { label: "Frutíferas", items: { Laranja: { kc: 0.75, rootDepth: 1.2, spacing: "7 x 4 m" }, Limão: { kc: 0.75, rootDepth: 1.2, spacing: "7 x 4 m" }, Manga: { kc: 0.8, rootDepth: 1.5, spacing: "10 x 10 m" }, Goiaba: { kc: 0.8, rootDepth: 1.0, spacing: "6 x 4 m" }, Mamão: { kc: 1.0, rootDepth: 0.8, spacing: "3 x 2 m" }, Banana: { kc: 1.2, rootDepth: 0.6, spacing: "3 x 2.5 m" }, Morango: { kc: 0.9, rootDepth: 0.25, spacing: "0.30 x 0.30 m" }, Melancia: { kc: 1.05, rootDepth: 0.6, spacing: "2 x 2 m" }, Melão: { kc: 1.05, rootDepth: 0.6, spacing: "2 x 2 m" }, Abacaxi: { kc: 0.9, rootDepth: 0.5, spacing: "0.90 x 0.40 m" }, }, }, graos: { label: "Grãos e Cereais", items: { Milho: { kc: 1.2, rootDepth: 0.8, spacing: "0.90 x 0.20 m" }, Soja: { kc: 1.15, rootDepth: 0.7, spacing: "0.45 m entre linhas" }, Arroz: { kc: 1.2, rootDepth: 0.3, spacing: "Sistema irrigado" }, Trigo: { kc: 1.05, rootDepth: 0.6, spacing: "0.20 m entre linhas" }, Feijão: { kc: 1.1, rootDepth: 0.6, spacing: "0.50 x 0.20 m" }, }, }, };
-
-// ============================================================= // 🔬 ENGINEERING CALCULATIONS // =============================================================
-
-function calculateETc(eto, kc) { return eto * kc; // mm/day }
-
-function estimateWaterVolume(areaHa, etc) { return areaHa * 10000 * etc; // liters/day }
-
-function estimateMaterials(areaHa) { const areaM2 = areaHa * 10000; return { tubos: Math.round(areaM2 / 120), gotejadores: Math.round(areaM2 / 2), bombaCv: (areaHa * 0.8).toFixed(1), reservatorio: Math.round(areaM2 * 5), }; }
-
-// ============================================================= // 📊 MAIN APP // =============================================================
-
-export default function App() { const [page, setPage] = useState("home"); const [family, setFamily] = useState("hortaliças"); const [crop, setCrop] = useState("Alface"); const [area, setArea] = useState(1); const [eto, setEto] = useState(5); const [city, setCity] = useState("");
-
-const cropData = useMemo(() => CROPS[family].items[crop], [family, crop]);
-
-const etc = calculateETc(eto, cropData.kc); const water = estimateWaterVolume(area, etc); const materials = estimateMaterials(area);
-
-if (page === "report") { return ( <div className="min-h-screen bg-white p-10"> <div className="max-w-4xl mx-auto space-y-6"> <h1 className="text-3xl font-bold">Relatório Técnico de Irrigação</h1>
-
-<Card>
-        <CardHeader>
-          <CardTitle>Dados do Projeto</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <p><b>Cultura:</b> {crop}</p>
-          <p><b>Família:</b> {CROPS[family].label}</p>
-          <p><b>Área:</b> {area} ha</p>
-          <p><b>Local:</b> {city || "Não informado"}</p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Dimensionamento Hídrico</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <p><b>Kc adotado:</b> {cropData.kc}</p>
-          <p><b>ETc estimada:</b> {etc.toFixed(2)} mm/dia</p>
-          <p><b>Volume diário:</b> {water.toLocaleString()} L/dia</p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Materiais Estimados</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <p>Tubos laterais: {materials.tubos}</p>
-          <p>Gotejadores: {materials.gotejadores}</p>
-          <p>Bomba recomendada: {materials.bombaCv} CV</p>
-          <p>Reservatório: {materials.reservatorio} L</p>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Planta Recomendada</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p>
-            Espaçamento sugerido: <b>{cropData.spacing}</b>
-          </p>
-          <p className="text-sm text-muted-foreground mt-2">
-            Layout baseado em recomendações técnicas para maximizar
-            uniformidade de aplicação e eficiência de uso da água.
-          </p>
-        </CardContent>
-      </Card>
-
-      <Button onClick={() => setPage("home")}>← Voltar</Button>
-    </div>
-  </div>
-);
-
+<style>
+body{
+    font-family: Arial, sans-serif;
+    margin:0;
+    background:#f4f7f6;
 }
 
-// ============================================================= // 🏠 HOME PAGE // =============================================================
+header{
+    background:#145a32;
+    color:white;
+    padding:20px;
+    text-align:center;
+}
 
-return ( <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 p-6"> <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-6xl mx-auto space-y-6" > <header className="flex items-center gap-3"> <Droplets className="w-8 h-8" /> <h1 className="text-3xl font-bold"> Plataforma Profissional de Irrigação </h1> </header>
+.container{
+    max-width:1100px;
+    margin:25px auto;
+    background:white;
+    padding:25px;
+    border-radius:12px;
+    box-shadow:0 8px 20px rgba(0,0,0,0.1);
+}
 
-<Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Leaf className="w-5 h-5" />
-          Parâmetros Agronômicos (Base Embrapa)
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="grid md:grid-cols-2 gap-4">
-        <div>
-          <label>Família</label>
-          <Select value={family} onValueChange={setFamily}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.entries(CROPS).map(([key, f]) => (
-                <SelectItem key={key} value={key}>
-                  {f.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    gap:12px;
+}
 
-        <div>
-          <label>Cultura</label>
-          <Select value={crop} onValueChange={setCrop}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {Object.keys(CROPS[family].items).map((c) => (
-                <SelectItem key={c} value={c}>
-                  {c}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+input,select,button,textarea{
+    width:100%;
+    padding:10px;
+    margin:6px 0;
+    border-radius:6px;
+    border:1px solid #ccc;
+}
 
-        <div>
-          <label>Área (ha)</label>
-          <Input
-            type="number"
-            value={area}
-            onChange={(e) => setArea(Number(e.target.value))}
-          />
-        </div>
+button{
+    background:#145a32;
+    color:white;
+    font-weight:bold;
+    cursor:pointer;
+}
 
-        <div>
-          <label>ETo (mm/dia)</label>
-          <Input
-            type="number"
-            value={eto}
-            onChange={(e) => setEto(Number(e.target.value))}
-          />
-        </div>
+button:hover{background:#0e3d22;}
 
-        <div className="md:col-span-2">
-          <label className="flex items-center gap-2">
-            <MapPin className="w-4 h-4" /> Cidade/Região
-          </label>
-          <Input value={city} onChange={(e) => setCity(e.target.value)} />
-        </div>
-      </CardContent>
-    </Card>
+.section{
+    margin-top:25px;
+    padding-top:15px;
+    border-top:2px solid #eee;
+}
 
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Calculator className="w-5 h-5" />
-          Resultados Rápidos
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="grid md:grid-cols-3 gap-4">
-        <div className="p-4 rounded-2xl bg-white shadow">
-          <p className="text-sm">ETc</p>
-          <p className="text-2xl font-bold">{etc.toFixed(2)} mm/dia</p>
-        </div>
-        <div className="p-4 rounded-2xl bg-white shadow">
-          <p className="text-sm">Volume diário</p>
-          <p className="text-2xl font-bold">
-            {water.toLocaleString()} L
-          </p>
-        </div>
-        <div className="p-4 rounded-2xl bg-white shadow">
-          <p className="text-sm">Bomba</p>
-          <p className="text-2xl font-bold">{materials.bombaCv} CV</p>
-        </div>
-      </CardContent>
-    </Card>
+.badge{
+    background:#27ae60;
+    color:white;
+    padding:4px 10px;
+    border-radius:20px;
+    font-size:12px;
+}
 
-    <div className="flex justify-end">
-      <Button size="lg" onClick={() => setPage("report")}> 
-        Gerar relatório técnico
-      </Button>
-    </div>
-  </motion.div>
+.hidden{display:none;}
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>AgroCalc Pro</h1>
+<p>Plataforma Profissional de Dimensionamento de Irrigação</p>
+<span class="badge">ULTRA ENGINEERING</span>
+</header>
+
+<div class="container">
+
+<h2>📋 Dados do Projeto</h2>
+
+<div class="grid">
+
+<input id="cidade" placeholder="Cidade">
+<input id="estado" placeholder="Estado (UF)">
+<input id="area" type="number" placeholder="Área irrigada (ha)">
+<input id="eto" type="number" placeholder="ETo local (mm/dia) — opcional">
+
+<select id="cultura">
+<option value="alface">Alface</option>
+<option value="tomate">Tomate</option>
+<option value="banana">Banana</option>
+<option value="morango">Morango</option>
+<option value="milho">Milho</option>
+<option value="soja">Soja</option>
+<option value="feijao">Feijão</option>
+<option value="arroz">Arroz irrigado</option>
+<option value="manga">Manga</option>
+<option value="limao">Limão</option>
+</select>
+
+<input id="espacamentoPlanta" type="number" placeholder="Espaçamento entre plantas (m)">
+<input id="espacamentoLinha" type="number" placeholder="Espaçamento entre linhas (m)">
+<input id="vazaoFonte" type="number" placeholder="Vazão disponível (m³/h)">
+<input id="altura" type="number" placeholder="Altura manométrica (m)">
+
 </div>
 
-); }
+<button onclick="buscarClima()">🌦️ Buscar Clima Automático</button>
+<button onclick="calcularProjeto()">🚀 Gerar Projeto Completo</button>
+
+</div>
+
+<script>
+// ===============================
+// BANCO DE CULTURAS (BASE EMBRAPA)
+// ===============================
+const culturas = {
+alface:{kc:0.95,vazao:2},
+tomate:{kc:1.15,vazao:4},
+banana:{kc:1.2,vazao:8},
+morango:{kc:0.85,vazao:1.5},
+milho:{kc:1.1,vazao:3},
+soja:{kc:1.05,vazao:3},
+feijao:{kc:1.0,vazao:2.5},
+arroz:{kc:1.2,vazao:5},
+manga:{kc:0.9,vazao:10},
+limao:{kc:0.85,vazao:9}
+};
+
+// ===============================
+// CLIMA AUTOMÁTICO
+// ===============================
+async function buscarClima(){
+    const cidade=document.getElementById("cidade").value;
+
+    if(!cidade){
+        alert("Informe a cidade");
+        return;
+    }
+
+    try{
+        const geo=await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${cidade}`);
+        const geoData=await geo.json();
+
+        if(!geoData.results){
+            alert("Cidade não encontrada");
+            return;
+        }
+
+        const lat=geoData.results[0].latitude;
+        const lon=geoData.results[0].longitude;
+
+        const clima=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=et0_fao_evapotranspiration&timezone=auto`);
+        const climaData=await clima.json();
+
+        const eto=climaData.daily.et0_fao_evapotranspiration[0];
+
+        document.getElementById("eto").value=eto.toFixed(2);
+
+        alert("Clima carregado com sucesso!");
+
+    }catch(e){
+        alert("Erro ao buscar clima");
+    }
+}
+
+// ===============================
+// CÁLCULO PRINCIPAL
+// ===============================
+function calcularProjeto(){
+
+const cultura=document.getElementById("cultura").value;
+const area=parseFloat(document.getElementById("area").value);
+const eto=parseFloat(document.getElementById("eto").value);
+const espP=parseFloat(document.getElementById("espacamentoPlanta").value);
+const espL=parseFloat(document.getElementById("espacamentoLinha").value);
+const vazaoFonte=parseFloat(document.getElementById("vazaoFonte").value);
+const altura=parseFloat(document.getElementById("altura").value);
+
+if(!area||!eto||!espP||!espL){
+alert("Preencha os dados obrigatórios");
+return;
+}
+
+const kc=culturas[cultura].kc;
+const etc=eto*kc;
+
+const volumeDia=(etc*area*10000)/1000;
+
+const plantasHa=10000/(espP*espL);
+const totalPlantas=plantasHa*area;
+
+const tubos=Math.ceil(area*120);
+const gotejadores=Math.ceil(totalPlantas);
+
+const custoTubos=tubos*2.8;
+const custoGotejo=gotejadores*0.45;
+const custoTotal=(custoTubos+custoGotejo).toFixed(2);
+
+// abrir nova página de relatório
+const win=window.open("");
+
+win.document.write(`
+<h1>📊 RELATÓRIO TÉCNICO — AGROCALC PRO</h1>
+<hr>
+
+<h2>🌱 Cultura</h2>
+<p><b>${cultura.toUpperCase()}</b></p>
+
+<h2>💧 Demanda Hídrica</h2>
+<p>ETc estimada: <b>${etc.toFixed(2)} mm/dia</b></p>
+<p>Volume diário: <b>${volumeDia.toFixed(1)} m³/dia</b></p>
+
+<h2>🌾 População de Plantas</h2>
+<p>Total estimado: <b>${Math.round(totalPlantas)}</b></p>
+
+<h2>🔧 Materiais Principais</h2>
+<p>Tubos PEAD: <b>${tubos} m</b></p>
+<p>Gotejadores: <b>${gotejadores}</b></p>
+
+<h2>💰 Orçamento Estimado</h2>
+<p><b>R$ ${custoTotal}</b></p>
+
+<h2>📐 Recomendações Técnicas</h2>
+<ul>
+<li>Validar pressão na ponta de linha</li>
+<li>Verificar uniformidade de aplicação</li>
+<li>Instalar filtragem adequada</li>
+<li>Confirmar curva da bomba</li>
+</ul>
+
+<hr>
+<p><i>Relatório gerado automaticamente pelo AgroCalc Pro</i></p>
+`);
+
+}
+</script>
+
+</body>
+</html>
