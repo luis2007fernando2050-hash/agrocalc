@@ -88,6 +88,14 @@ button:hover {background:#0e3d22;}
 
 </select>
 
+<label>Clima da região</label>
+<select id="clima">
+<option value="seco">Seco</option>
+<option value="semiarido">Semiárido</option>
+<option value="tropical">Tropical</option>
+<option value="temperado">Temperado</option>
+</select>
+
 <label>Número de fileiras</label>
 <input type="number" id="fileiras">
 
@@ -131,6 +139,7 @@ const distancia=parseFloat(document.getElementById('distancia').value);
 const cultura=document.getElementById('cultura').value;
 const fileiras=parseInt(document.getElementById('fileiras').value);
 const comprimento=parseFloat(document.getElementById('comprimento').value);
+const clima=document.getElementById('clima').value;
 
 if(isNaN(potenciaDisponivel)||isNaN(distancia)||isNaN(fileiras)||isNaN(comprimento)){
 alert('Preencha todos os campos corretamente');
@@ -193,6 +202,7 @@ const tuboPrincipal=potenciaDisponivel>=1?'32mm':'25mm';
 let metodoIrrigacao="Gotejamento";
 let tubulacaoRecomendada="PEAD 16-32mm";
 
+// Embrapa: grãos maiores em aspersão
 if(cultura==='milho' || cultura==='soja' || cultura==='trigo' || cultura==='feijao' || cultura==='arroz'){
     metodoIrrigacao="Aspersão";
     tubulacaoRecomendada="PEAD 32-40mm";
@@ -200,6 +210,13 @@ if(cultura==='milho' || cultura==='soja' || cultura==='trigo' || cultura==='feij
     metodoIrrigacao="Gotejamento localizado";
     tubulacaoRecomendada="PEAD 25-32mm";
 }
+
+// ================= TEMPO DE IRRIGAÇÃO DIÁRIO BASEADO NO CLIMA =================
+let tempoIrrigacao=0; // horas/dia
+if(clima==='seco'){ tempoIrrigacao=8; }
+else if(clima==='semiarido'){ tempoIrrigacao=6; }
+else if(clima==='tropical'){ tempoIrrigacao=4; }
+else if(clima==='temperado'){ tempoIrrigacao=2; }
 
 // ================= RELATÓRIO =================
 relatorioTexto=`Projeto de Irrigação - AgroCalc Pro
@@ -218,6 +235,7 @@ Bomba sugerida: ${bombaSugerida}
 Tubulação principal: ${tuboPrincipal} (recomendada: ${tubulacaoRecomendada})
 Mangueira secundária: 16mm
 Método de irrigação sugerido: ${metodoIrrigacao}
+Tempo de irrigação diário recomendado: ${tempoIrrigacao} horas/dia
 Pressão recomendada: 10 a 15 mca
 
 Observação: Conferir curva real da bomba para validação final.`;
