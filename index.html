@@ -43,6 +43,20 @@ button:hover {background:#0e3d22;}
 <span class="badge">Versão Profissional</span>
 </div>
 
+<!-- NOVOS CAMPOS -->
+<label>Nome do Produtor</label>
+<input type="text" id="nomeProdutor">
+
+<label>Nome do Agrônomo</label>
+<input type="text" id="nomeAgronomo">
+
+<label>Cidade/Município</label>
+<input type="text" id="cidade">
+
+<label>Preço da energia local (R$/kWh)</label>
+<input type="number" id="precoEnergia" step="0.01" placeholder="Ex: 0.80">
+
+<!-- CAMPOS EXISTENTES -->
 <label>Potência da bomba disponível (CV)</label>
 <input type="number" id="potencia">
 
@@ -51,7 +65,6 @@ button:hover {background:#0e3d22;}
 
 <label>Tipo de cultura</label>
 <select id="cultura">
-
 <optgroup label="🥬 Hortaliças">
 <option value="alface">Alface</option>
 <option value="tomate">Tomate</option>
@@ -119,7 +132,6 @@ button:hover {background:#0e3d22;}
 </div>
 
 <script>
-
 function login(){
 const u=document.getElementById('usuario').value;
 const s=document.getElementById('senha').value;
@@ -134,6 +146,10 @@ alert('Usuário ou senha incorretos');
 let relatorioTexto="";
 
 function calcularSistema(){
+const nomeProdutor=document.getElementById('nomeProdutor').value;
+const nomeAgronomo=document.getElementById('nomeAgronomo').value;
+const cidade=document.getElementById('cidade').value;
+const precoEnergia=parseFloat(document.getElementById('precoEnergia').value);
 const potenciaDisponivel=parseFloat(document.getElementById('potencia').value);
 const distancia=parseFloat(document.getElementById('distancia').value);
 const cultura=document.getElementById('cultura').value;
@@ -141,9 +157,9 @@ const fileiras=parseInt(document.getElementById('fileiras').value);
 const comprimento=parseFloat(document.getElementById('comprimento').value);
 const clima=document.getElementById('clima').value;
 
-if(isNaN(potenciaDisponivel)||isNaN(distancia)||isNaN(fileiras)||isNaN(comprimento)){
-alert('Preencha todos os campos corretamente');
-return;
+if(!nomeProdutor || !nomeAgronomo || !cidade || isNaN(precoEnergia) || isNaN(potenciaDisponivel) || isNaN(distancia) || isNaN(fileiras) || isNaN(comprimento)){
+    alert('Preencha todos os campos corretamente');
+    return;
 }
 
 let vazaoPlanta=2;
@@ -182,13 +198,11 @@ const totalPlantas=plantasPorFileira*fileiras;
 const vazaoTotal=totalPlantas*vazaoPlanta; 
 const vazao_m3h=vazaoTotal/1000;
 
-// ===== DIMENSIONAMENTO HIDRÁULICO =====
 const perdaCarga=(distancia/100)*2.5;
 const pressaoServico=12;
 const HMT=(distancia*0.01)+perdaCarga+pressaoServico;
 const potenciaNecessaria=(vazao_m3h*HMT)/75;
 
-// seleção automática da bomba
 let bombaSugerida="";
 if(potenciaNecessaria<=0.5) bombaSugerida="Bomba 0,5 CV";
 else if(potenciaNecessaria<=1) bombaSugerida="Bomba 1 CV";
@@ -198,28 +212,33 @@ else bombaSugerida="Bomba acima de 3 CV";
 
 const tuboPrincipal=potenciaDisponivel>=1?'32mm':'25mm';
 
-// ================= RECOMENDAÇÃO MÉTODO DE IRRIGAÇÃO E TUBULAÇÃO =================
 let metodoIrrigacao="Gotejamento";
 let tubulacaoRecomendada="PEAD 16-32mm";
-
-// Embrapa: grãos maiores em aspersão
 if(cultura==='milho' || cultura==='soja' || cultura==='trigo' || cultura==='feijao' || cultura==='arroz'){
     metodoIrrigacao="Aspersão";
     tubulacaoRecomendada="PEAD 32-40mm";
-} else if(cultura==='laranja' || cultura==='limao' || cultura==='manga' || cultura==='goiaba' || cultura==='banana' || cultura==='mamão'){
+} else if(cultura==='laranja' || cultura==='limao' || cultura==='manga' || cultura==='goiaba' || cultura==='banana' || cultura==='mamao'){
     metodoIrrigacao="Gotejamento localizado";
     tubulacaoRecomendada="PEAD 25-32mm";
 }
 
-// ================= TEMPO DE IRRIGAÇÃO DIÁRIO BASEADO NO CLIMA =================
-let tempoIrrigacao=0; // horas/dia
+let tempoIrrigacao=0; 
 if(clima==='seco'){ tempoIrrigacao=8; }
 else if(clima==='semiarido'){ tempoIrrigacao=6; }
 else if(clima==='tropical'){ tempoIrrigacao=4; }
 else if(clima==='temperado'){ tempoIrrigacao=2; }
 
+// ================= CUSTO ESTIMADO DE ENERGIA =================
+const energia_kWh = potenciaDisponivel * 0.7355; // CV → kW
+const custoDiario = energia_kWh * tempoIrrigacao * precoEnergia;
+const custoMensal = custoDiario * 30;
+
 // ================= RELATÓRIO =================
 relatorioTexto=`Projeto de Irrigação - AgroCalc Pro
+
+Produtor: ${nomeProdutor}
+Agrônomo: ${nomeAgronomo}
+Cidade/Município: ${cidade}
 
 Cultura: ${cultura}
 Total de plantas: ${Math.round(totalPlantas)}
@@ -236,6 +255,10 @@ Tubulação principal: ${tuboPrincipal} (recomendada: ${tubulacaoRecomendada})
 Mangueira secundária: 16mm
 Método de irrigação sugerido: ${metodoIrrigacao}
 Tempo de irrigação diário recomendado: ${tempoIrrigacao} horas/dia
+
+--- Estimativa de custo ---
+Custo estimado mensal de energia: R$ ${custoMensal.toFixed(2)}
+
 Pressão recomendada: 10 a 15 mca
 
 Observação: Conferir curva real da bomba para validação final.`;
@@ -246,13 +269,11 @@ document.getElementById('appBox').classList.add('hidden');
 document.getElementById('resultadoBox').classList.remove('hidden');
 }
 
-// VOLTAR AO PROJETO
 function voltarProjeto(){
 document.getElementById('resultadoBox').classList.add('hidden');
 document.getElementById('appBox').classList.remove('hidden');
 }
 
-// GERAR PDF
 async function gerarPDF(){
 if(!relatorioTexto){alert('Calcule o projeto primeiro');return;}
 const { jsPDF } = window.jspdf;
