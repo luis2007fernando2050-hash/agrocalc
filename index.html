@@ -67,7 +67,7 @@ canvas {border:1px solid #ccc; margin-top:15px;}
 
 <label>Tipo de cultura</label>
 <select id="cultura">
-<optgroup label="🥬 Hortaliças">
+<option value="">-- Selecione --</option>
 <option value="alface">Alface</option>
 <option value="tomate">Tomate</option>
 <option value="cenoura">Cenoura</option>
@@ -78,8 +78,6 @@ canvas {border:1px solid #ccc; margin-top:15px;}
 <option value="couve">Couve</option>
 <option value="beterraba">Beterraba</option>
 <option value="rucula">Rúcula</option>
-</optgroup>
-<optgroup label="🍎 Frutíferas">
 <option value="laranja">Laranja</option>
 <option value="limao">Limão</option>
 <option value="manga">Manga</option>
@@ -90,14 +88,11 @@ canvas {border:1px solid #ccc; margin-top:15px;}
 <option value="melancia">Melancia</option>
 <option value="melao">Melão</option>
 <option value="abacaxi">Abacaxi</option>
-</optgroup>
-<optgroup label="🌾 Grãos e Cereais">
 <option value="milho">Milho</option>
 <option value="soja">Soja</option>
 <option value="arroz">Arroz irrigado</option>
 <option value="trigo">Trigo</option>
 <option value="feijao">Feijão</option>
-</optgroup>
 </select>
 
 <label>Número de fileiras</label>
@@ -186,6 +181,35 @@ alface:1.0, feijao:1.05, banana:1.2
 return base*(kc[cultura]||1.0);  
 }  
 
+// Parâmetros de irrigação por cultura
+const irrigacaoCultura = {
+alface:{tipo:"gotejamento", gotejador:2, pressao:"1–2 bar"},
+tomate:{tipo:"gotejamento", gotejador:2, pressao:"1–2 bar"},
+cenoura:{tipo:"gotejamento", gotejador:2, pressao:"1–2 bar"},
+cebola:{tipo:"gotejamento", gotejador:2, pressao:"1–2 bar"},
+batata:{tipo:"gotejamento", gotejador:2, pressao:"1–2 bar"},
+pepino:{tipo:"gotejamento", gotejador:3, pressao:"1–2 bar"},
+pimentao:{tipo:"gotejamento", gotejador:3, pressao:"1–2 bar"},
+couve:{tipo:"gotejamento", gotejador:2, pressao:"1–2 bar"},
+beterraba:{tipo:"gotejamento", gotejador:1.5, pressao:"1–2 bar"},
+rucula:{tipo:"gotejamento", gotejador:1, pressao:"1–2 bar"},
+laranja:{tipo:"gotejamento", gotejador:35, pressao:"2–3 bar"},
+limao:{tipo:"gotejamento", gotejador:30, pressao:"2–3 bar"},
+manga:{tipo:"gotejamento", gotejador:60, pressao:"2–3 bar"},
+goiaba:{tipo:"gotejamento", gotejador:30, pressao:"2–3 bar"},
+mamao:{tipo:"gotejamento", gotejador:15, pressao:"2–3 bar"},
+banana:{tipo:"gotejamento", gotejador:20, pressao:"2–3 bar"},
+morango:{tipo:"gotejamento", gotejador:1.5, pressao:"1–2 bar"},
+melancia:{tipo:"aspersao", gotejador:5, pressao:"2–3 bar"},
+melao:{tipo:"aspersao", gotejador:4, pressao:"2–3 bar"},
+abacaxi:{tipo:"gotejamento", gotejador:2, pressao:"1–2 bar"},
+milho:{tipo:"aspersao", gotejador:3.5, pressao:"2–3 bar"},
+soja:{tipo:"aspersao", gotejador:2.5, pressao:"2–3 bar"},
+arroz:{tipo:"aspersao", gotejador:6, pressao:"2–3 bar"},
+trigo:{tipo:"aspersao", gotejador:2, pressao:"2–3 bar"},
+feijao:{tipo:"aspersao", gotejador:2.8, pressao:"2–3 bar"},
+};
+
 // ===================== CÁLCULO PRINCIPAL =====================  
 window.calcularSistema = function(){  
 
@@ -201,55 +225,40 @@ const cidade=document.getElementById('cidade').value.trim();
 const municipio=document.getElementById('municipio').value.trim();  
 const precoEnergia=parseFloat(document.getElementById('precoEnergia').value)||0;  
 
-if(!nomeProdutor||!nomeAgronomo||!cidade||!municipio||  
-fileiras<=0||comprimento<=0||precoEnergia<=0){  
+if(!nomeProdutor||!nomeAgronomo||!cidade||!municipio||fileiras<=0||comprimento<=0||precoEnergia<=0||!cultura){  
 alert("Preencha todos os campos corretamente.");  
 return;  
 }  
 
-// ---------- Dados cultura ----------  
-let vazaoPlanta=3.5;  
-let espacamento=0.5;  
+const irrigacao = irrigacaoCultura[cultura];
 
-if(cultura==="tomate"){vazaoPlanta=4;espacamento=0.4;}  
-if(cultura==="alface"){vazaoPlanta=2;espacamento=0.3;}  
-if(cultura==="soja"){vazaoPlanta=2.5;espacamento=0.45;}  
-if(cultura==="feijao"){vazaoPlanta=2.8;espacamento=0.4;}  
-
-// ---------- Agronomia ----------  
+// ---------- Agronomia ----------
+let vazaoPlanta = irrigacao.gotejador;
+let espacamento = 0.5;
 const plantasPorFileira=Math.max(1,Math.floor(comprimento/espacamento));  
 const totalPlantas=plantasPorFileira*fileiras;  
-
 const vazaoTotal=totalPlantas*vazaoPlanta;  
 const vazao_m3h=vazaoTotal/1000;  
-
 const espacamentoLinhas=0.8;  
 const area=Math.max(1,fileiras*comprimento*espacamentoLinhas);  
-
 const etc=etcEstimado(cultura,clima);  
 const volumeDia=(etc/1000)*area;  
-
 let tempoIrrigacao = volumeDia/(vazao_m3h||1);  
 if(!isFinite(tempoIrrigacao)||tempoIrrigacao<=0) tempoIrrigacao=1;  
 
-// ---------- Hidráulica ----------  
+// ---------- Hidráulica ----------
 const diametro=escolherDiametro(vazao_m3h);  
 const perdaCarga=perdaCargaHazenWilliams(vazao_m3h,diametro,distancia);  
-
 const HMT=12+perdaCarga+(distancia*0.01);  
-
 const eficiencia=0.65;  
 const potenciaNecessaria=(vazao_m3h*HMT)/(75*eficiencia);  
-
 const bombaSugerida=Math.ceil(Math.max(0.5,potenciaNecessaria))+" CV";  
 
-const metodoIrrigacao=(cultura==="alface"||cultura==="tomate")?"Gotejamento":"Aspersão";  
-
-// ---------- Energia ----------  
+// ---------- Energia ----------
 const kW=potenciaNecessaria*0.7355;  
 const custoEnergia=(kW*tempoIrrigacao*30*precoEnergia).toFixed(2);  
 
-// ---------- Relatório ----------  
+// ---------- Relatório ----------
 relatorioTexto=`Projeto de Irrigação - AgroCalc Pro  
 
 Produtor: ${nomeProdutor}  
@@ -266,7 +275,8 @@ Perda de carga: ${perdaCarga.toFixed(2)} mca
 HMT: ${HMT.toFixed(2)} mca  
 Potência requerida: ${potenciaNecessaria.toFixed(2)} CV  
 Bomba sugerida: ${bombaSugerida}  
-Método recomendado: ${metodoIrrigacao}  
+Método recomendado: ${irrigacao.tipo}  
+Pressão recomendada: ${irrigacao.pressao}  
 
 --- Manejo ---  
 ETc estimada: ${etc.toFixed(2)} mm/dia  
@@ -315,7 +325,7 @@ function desenharProjeto(totalFileiras, comprimento, diametro, metodo){
   ctx.fillText('Método: '+metodo,600,30);
   ctx.fillText('Tubulação: '+diametro+' mm',600,50);
 }
-desenharProjeto(fileiras, comprimento, diametro, metodoIrrigacao);
+desenharProjeto(fileiras, comprimento, diametro, irrigacao.tipo);
 
 window.baixarImagem=function(){
   const canvas=document.getElementById('canvasProjeto');
