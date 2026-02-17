@@ -3,60 +3,71 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AgroCalc Pro - Questionário Técnico</title>
+<title>AgroCalc Pro - Dimensionamento Profissional de Irrigação</title>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
-body{font-family:Arial, sans-serif;background:#f4f7f6;margin:0;}
-header{background:#145a32;color:white;padding:20px;text-align:center;}
-.container{max-width:950px;margin:25px auto;background:white;padding:25px;border-radius:12px;box-shadow:0 8px 20px rgba(0,0,0,0.1);}
-h3{background:#eef7f2;padding:10px;border-left:5px solid #145a32;}
-input,select,textarea,button{width:100%;padding:10px;margin:6px 0;border-radius:6px;border:1px solid #ccc;}
-button{background:#145a32;color:white;font-weight:bold;cursor:pointer;}
-button:hover{background:#0e3d22;}
-.hidden{display:none;}
-.resultado{margin-top:20px;padding:20px;background:#eef7f2;border-left:6px solid #145a32;}
-.badge{background:#27ae60;padding:5px 10px;border-radius:20px;font-size:12px;}
-.topbar{display:flex;justify-content:space-between;align-items:center;}
+body{font-family:Arial, sans-serif;background:#f4f7f6;margin:0}
+header{background:#145a32;color:white;padding:20px;text-align:center}
+.container{max-width:1000px;margin:25px auto;background:white;padding:25px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,.1)}
+h2{color:#145a32}
+input,select,textarea,button{width:100%;padding:10px;margin:6px 0;border-radius:6px;border:1px solid #ccc}
+button{background:#145a32;color:white;font-weight:bold;cursor:pointer}
+button:hover{background:#0e3d22}
+.hidden{display:none}
+.card-info{background:#eef7f2;padding:15px;border-left:6px solid #145a32;margin-bottom:15px}
+.relatorio{white-space:pre-line;background:#f9f9f9;padding:20px;border-radius:8px}
 </style>
 </head>
-
 <body>
 
 <header>
 <h1>AgroCalc Pro</h1>
-<p>Questionário Técnico para Dimensionamento de Irrigação</p>
+<p>Sistema Profissional de Dimensionamento de Irrigação</p>
 </header>
 
-<!-- LOGIN -->
-<div class="container" id="loginBox">
-<h2>Acesso ao Sistema</h2>
-<input type="text" id="usuario" placeholder="Usuário">
-<input type="password" id="senha" placeholder="Senha">
-<button onclick="login()">Entrar</button>
-<p><strong>Modo demonstração:</strong> usuário: admin | senha: 1234</p>
+<!-- =================== PAGINA INICIAL EDUCATIVA =================== -->
+
+<div class="container" id="paginaInicial">
+
+<h2>Critérios Técnicos para Projetos de Irrigação de Qualidade</h2>
+
+<div class="card-info">
+<strong>Base técnica:</strong> recomendações de engenharia agrícola e manuais da Embrapa.
 </div>
 
-<!-- APP -->
-<div class="container hidden" id="appBox">
+<p>Para o correto dimensionamento de sistemas de irrigação, o engenheiro agrônomo deve considerar:</p>
 
-<div class="topbar">
-<h2>Questionário Técnico</h2>
-<span class="badge">Versão Profissional</span>
+<ul>
+<li>Caracterização climática da região (ETo e regime de chuvas)</li>
+<li>Classificação física e química do solo</li>
+<li>Exigência hídrica da cultura e estágio fenológico</li>
+<li>Topografia do terreno</li>
+<li>Disponibilidade e qualidade da água</li>
+<li>Eficiência do método de irrigação</li>
+<li>Disponibilidade energética</li>
+<li>Viabilidade econômica do sistema</li>
+</ul>
+
+<button onclick="irParaFormulario()">Iniciar Novo Dimensionamento</button>
 </div>
 
-<h3>👤 Identificação do Produtor</h3>
-<input id="produtor" placeholder="Nome do produtor">
-<input id="localizacao" placeholder="Localização da propriedade">
+<!-- =================== FORMULÁRIO =================== -->
 
-<h3>🌦️ Características da Região</h3>
-<input id="clima" placeholder="Características climáticas">
-<input id="solo" placeholder="Tipo e classificação do solo">
-<textarea id="analiseSolo" placeholder="Análise química e física do solo"></textarea>
+<div class="container hidden" id="formulario">
 
-<h3>🌱 Cultura</h3>
+<h2>Questionário Técnico do Projeto</h2>
+
+<label>Identificação do Produtor</label>
+<input id="produtor">
+
+<label>Localização da Propriedade</label>
+<input id="localizacao">
+
+<label>Cultura Implantada</label>
 <select id="cultura">
+<optgroup label="Hortaliças">
 <option>Alface</option>
 <option>Tomate</option>
 <option>Cenoura</option>
@@ -67,6 +78,9 @@ button:hover{background:#0e3d22;}
 <option>Couve</option>
 <option>Beterraba</option>
 <option>Rúcula</option>
+</optgroup>
+
+<optgroup label="Frutíferas">
 <option>Laranja</option>
 <option>Limão</option>
 <option>Manga</option>
@@ -77,30 +91,41 @@ button:hover{background:#0e3d22;}
 <option>Melancia</option>
 <option>Melão</option>
 <option>Abacaxi</option>
+</optgroup>
+
+<optgroup label="Grãos e Cereais">
 <option>Milho</option>
 <option>Soja</option>
-<option>Arroz irrigado</option>
+<option>Arroz Irrigado</option>
 <option>Trigo</option>
 <option>Feijão</option>
+</optgroup>
 </select>
 
-<input id="estagio" placeholder="Estágio fenológico">
-<input type="number" id="area" placeholder="Área total irrigada (ha)">
-<input type="number" id="espPlanta" placeholder="Espaçamento entre plantas (m)">
-<input type="number" id="espFileira" placeholder="Espaçamento entre fileiras (m)">
-<input type="number" id="numPlantas" placeholder="Número total de plantas">
+<label>Estágio Fenológico</label>
+<select id="estagio">
+<option>Inicial</option>
+<option>Desenvolvimento</option>
+<option>Floração</option>
+<option>Produção</option>
+</select>
 
-<h3>⛰️ Terreno</h3>
-<input id="topografia" placeholder="Topografia do terreno">
+<label>Área total irrigada (ha)</label>
+<input type="number" id="area">
 
-<h3>💧 Água</h3>
-<input id="fonteAgua" placeholder="Fonte de água">
-<input id="qualidadeAgua" placeholder="Qualidade da água">
-<input type="number" id="vazaoFonte" placeholder="Vazão disponível (m³/h)">
-<input type="number" id="distanciaFonte" placeholder="Distância da fonte (m)">
-<input type="number" id="desnivel" placeholder="Desnível (mca)">
+<label>Espaçamento entre plantas (m)</label>
+<input type="number" id="espPlanta">
 
-<h3>🚿 Sistema</h3>
+<label>Espaçamento entre fileiras (m)</label>
+<input type="number" id="espFileira">
+
+<label>Vazão disponível da fonte (m³/h)</label>
+<input type="number" id="vazaoFonte">
+
+<label>Desnível/altura manométrica (m)</label>
+<input type="number" id="altura">
+
+<label>Sistema de irrigação desejado</label>
 <select id="sistema">
 <option>Gotejamento</option>
 <option>Microaspersão</option>
@@ -108,74 +133,92 @@ button:hover{background:#0e3d22;}
 <option>Pivô central</option>
 </select>
 
-<input id="eficiencia" placeholder="Eficiência esperada (%)">
-<input id="energia" placeholder="Disponibilidade de energia">
-<input id="tipoEnergia" placeholder="Tipo de energia">
-<input id="potencia" placeholder="Potência instalada">
-<input id="orcamento" placeholder="Orçamento disponível">
-<input id="maoObra" placeholder="Mão de obra disponível">
-<input id="frequencia" placeholder="Frequência de irrigação">
-<textarea id="historicoProd" placeholder="Histórico de produtividade"></textarea>
-<textarea id="problemas" placeholder="Histórico de problemas hídricos"></textarea>
-<input id="sistemaAtual" placeholder="Sistema atual (se houver)">
-<select id="automacao">
-<option>Não</option>
-<option>Sim</option>
-</select>
-<input id="expansao" placeholder="Plano de expansão da área">
+<label>Eficiência esperada (%)</label>
+<input type="number" id="eficiencia" value="90">
 
-<button onclick="gerarRelatorio()">Gerar Relatório Técnico</button>
-<button onclick="gerarPDF()">Gerar PDF</button>
+<button onclick="gerarProjeto()">Gerar Dimensionamento</button>
+</div>
 
-<div class="resultado hidden" id="resultado"></div>
+<!-- =================== RELATORIO =================== -->
+
+<div class="container hidden" id="paginaRelatorio">
+<h2>Relatório Técnico de Irrigação</h2>
+<div class="relatorio" id="saidaRelatorio"></div>
+<button onclick="baixarPDF()">Baixar PDF</button>
+<button onclick="voltarInicio()">Novo Projeto</button>
 </div>
 
 <script>
-function login(){
-const u=document.getElementById('usuario').value;
-const s=document.getElementById('senha').value;
-if(u==='admin' && s==='1234'){
-document.getElementById('loginBox').classList.add('hidden');
-document.getElementById('appBox').classList.remove('hidden');
-}else{
-alert('Usuário ou senha incorretos');
-}
+function irParaFormulario(){
+document.getElementById("paginaInicial").classList.add("hidden");
+document.getElementById("formulario").classList.remove("hidden");
 }
 
-let relatorioTexto="";
-
-function gerarRelatorio(){
-
-relatorioTexto=
-`RELATÓRIO TÉCNICO - AGROCALC PRO
-
-Produtor: ${produtor.value}
-Localização: ${localizacao.value}
-
-Cultura: ${cultura.value}
-Estágio: ${estagio.value}
-Área: ${area.value} ha
-
-Fonte de água: ${fonteAgua.value}
-Vazão disponível: ${vazaoFonte.value} m³/h
-Desnível: ${desnivel.value} mca
-
-Sistema escolhido: ${sistema.value}
-Eficiência esperada: ${eficiencia.value}
-
-Observação técnica:
-Recomenda-se validação hidráulica completa antes da implantação do sistema.`;
-
-document.getElementById('resultado').classList.remove('hidden');
-document.getElementById('resultado').innerHTML=relatorioTexto.replace(/\n/g,'<br>');
+function voltarInicio(){
+location.reload();
 }
 
-async function gerarPDF(){
-if(!relatorioTexto){alert('Gere o relatório primeiro');return;}
+let textoRelatorio="";
+
+function gerarProjeto(){
+
+const cultura=document.getElementById("cultura").value;
+const area=parseFloat(document.getElementById("area").value);
+const espPlanta=parseFloat(document.getElementById("espPlanta").value);
+const espFileira=parseFloat(document.getElementById("espFileira").value);
+const eficiencia=parseFloat(document.getElementById("eficiencia").value);
+const sistema=document.getElementById("sistema").value;
+const vazaoFonte=parseFloat(document.getElementById("vazaoFonte").value);
+
+if(!area||!espPlanta||!espFileira||!eficiencia){
+alert("Preencha os campos obrigatórios");
+return;
+}
+
+/* ===== BASE SIMPLIFICADA ESTILO EMBRAPA ===== */
+
+let lamina;
+
+if(cultura==="Milho"||cultura==="Soja"||cultura==="Feijão") lamina=5.5;
+else if(cultura==="Banana"||cultura==="Manga"||cultura==="Laranja") lamina=6.5;
+else lamina=4.5;
+
+const areaM2=area*10000;
+const plantas=areaM2/(espPlanta*espFileira);
+const volumeDia=areaM2*lamina/1000;
+const vazaoNecessaria=(volumeDia*1000)/(24*eficiencia/100);
+
+textoRelatorio=
+`RELATÓRIO TÉCNICO — AGROCALC PRO
+
+Cultura: ${cultura}
+Sistema recomendado: ${sistema}
+
+Área irrigada: ${area} ha
+População estimada: ${Math.round(plantas)} plantas
+
+Lâmina média adotada: ${lamina} mm/dia
+Volume diário requerido: ${volumeDia.toFixed(2)} m³/dia
+
+Vazão mínima do sistema: ${vazaoNecessaria.toFixed(2)} L/h
+Vazão disponível na fonte: ${vazaoFonte} m³/h
+
+Eficiência considerada: ${eficiencia} %
+
+OBSERVAÇÃO TÉCNICA:
+Dimensionamento preliminar conforme parâmetros médios de literatura técnica e manuais da Embrapa. Recomenda-se validação hidráulica completa do projeto executivo.`;
+
+document.getElementById("formulario").classList.add("hidden");
+document.getElementById("paginaRelatorio").classList.remove("hidden");
+document.getElementById("saidaRelatorio").innerText=textoRelatorio;
+}
+
+async function baixarPDF(){
 const {jsPDF}=window.jspdf;
 const doc=new jsPDF();
-doc.text(relatorioTexto,10,10);
-doc.save('Relatorio_AgroCalc_Pro.pdf');
+const linhas=doc.splitTextToSize(textoRelatorio,180);
+doc.text(linhas,10,10);
+doc.save("Relatorio_AgroCalc_Pro.pdf");
 }
 </script>
 
