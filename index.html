@@ -1,103 +1,3 @@
-<!DOCTYPE html><html lang="pt-br">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AgroCalc Pro - Sistema Profissional de Irrigação</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<style>
-body {font-family: Arial, sans-serif; background:#f4f7f6; margin:0;}
-header {background:#145a32; color:white; padding:20px; text-align:center;}
-.container {max-width:900px; margin:30px auto; background:white; padding:25px; border-radius:12px; box-shadow:0 8px 20px rgba(0,0,0,0.1);} 
-input, select, button {width:100%; padding:12px; margin:8px 0; border-radius:6px; border:1px solid #ccc;}
-button {background:#145a32; color:white; font-weight:bold; cursor:pointer;}
-button:hover {background:#0e3d22;}
-.resultado {margin-top:20px; padding:20px; background:#eef7f2; border-left:6px solid #145a32;}
-.hidden {display:none;}
-.topbar {display:flex; justify-content:space-between; align-items:center;}
-.badge {background:#27ae60; padding:5px 10px; border-radius:20px; font-size:12px;}
-</style>
-</head>
-<body>
-
-<header>
-<h1>AgroCalc Pro</h1>
-<p>Sistema Profissional de Dimensionamento de Irrigação</p>
-</header>
-
-<div class="container" id="loginBox">
-<h2>Acesso ao Sistema</h2>
-<input type="text" id="usuario" placeholder="Usuário">
-<input type="password" id="senha" placeholder="Senha">
-<button onclick="login()">Entrar</button>
-<p><strong>Modo demonstração:</strong> usuário: admin | senha: 1234</p>
-</div>
-
-<div class="container hidden" id="appBox">
-<div class="topbar">
-<h2>Novo Projeto</h2>
-<span class="badge">Versão Profissional</span>
-</div>
-
-<label>Potência da bomba (CV)</label>
-<input type="number" id="potencia">
-
-<label>Distância da bomba até o plantio (m)</label>
-<input type="number" id="distancia">
-
-<label>Tipo de cultura</label>
-<select id="cultura">
-
-<!-- HORTALIÇAS -->
-<optgroup label="🥬 Hortaliças">
-<option value="alface">Alface</option>
-<option value="tomate">Tomate</option>
-<option value="cenoura">Cenoura</option>
-<option value="cebola">Cebola</option>
-<option value="batata">Batata</option>
-<option value="pepino">Pepino</option>
-<option value="pimentao">Pimentão</option>
-<option value="couve">Couve</option>
-<option value="beterraba">Beterraba</option>
-<option value="rucula">Rúcula</option>
-</optgroup>
-
-<!-- FRUTÍFERAS -->
-<optgroup label="🍎 Frutíferas">
-<option value="laranja">Laranja</option>
-<option value="limao">Limão</option>
-<option value="manga">Manga</option>
-<option value="goiaba">Goiaba</option>
-<option value="mamao">Mamão</option>
-<option value="banana">Banana</option>
-<option value="morango">Morango</option>
-<option value="melancia">Melancia</option>
-<option value="melao">Melão</option>
-<option value="abacaxi">Abacaxi</option>
-</optgroup>
-
-<!-- GRÃOS -->
-<optgroup label="🌾 Grãos e Cereais">
-<option value="milho">Milho</option>
-<option value="soja">Soja</option>
-<option value="arroz">Arroz irrigado</option>
-<option value="trigo">Trigo</option>
-<option value="feijao">Feijão</option>
-</optgroup>
-
-</select>
-
-<label>Número de fileiras</label>
-<input type="number" id="fileiras">
-
-<label>Comprimento de cada fileira (m)</label>
-<input type="number" id="comprimento">
-
-<button onclick="calcularSistema()">Calcular Sistema</button>
-<button onclick="gerarPDF()">Gerar PDF do Projeto</button>
-
-<div class="resultado hidden" id="resultado"></div>
-</div>
-
 <script>
 function login(){
 const u=document.getElementById('usuario').value;
@@ -109,7 +9,80 @@ document.getElementById('appBox').classList.remove('hidden');
 }
 
 let relatorioTexto="";
+let etoAtual=4.5; // valor padrão se não carregar clima
 
+// ================= BASE TÉCNICA (inspirada Embrapa) =================
+const baseCulturas={
+alface:{kc:0.95,vazao:2,esp:0.30},
+tomate:{kc:1.15,vazao:4,esp:0.40},
+cenoura:{kc:0.85,vazao:1.2,esp:0.25},
+cebola:{kc:0.85,vazao:1.0,esp:0.20},
+batata:{kc:1.05,vazao:2.5,esp:0.35},
+pepino:{kc:1.0,vazao:3,esp:0.50},
+pimentao:{kc:1.05,vazao:3.5,esp:0.50},
+couve:{kc:0.95,vazao:2.2,esp:0.60},
+beterraba:{kc:0.9,vazao:1.3,esp:0.30},
+rucula:{kc:0.8,vazao:0.8,esp:0.20},
+laranja:{kc:0.9,vazao:40,esp:4},
+limao:{kc:0.9,vazao:35,esp:4},
+manga:{kc:1.0,vazao:60,esp:6},
+goiaba:{kc:0.95,vazao:30,esp:4},
+mamao:{kc:1.1,vazao:15,esp:2.5},
+banana:{kc:1.2,vazao:20,esp:3},
+morango:{kc:0.85,vazao:1.5,esp:0.25},
+melancia:{kc:1.05,vazao:5,esp:2},
+melao:{kc:1.0,vazao:4,esp:1.5},
+abacaxi:{kc:0.9,vazao:2,esp:0.40},
+milho:{kc:1.15,vazao:3.5,esp:0.50},
+soja:{kc:1.1,vazao:2.5,esp:0.45},
+arroz:{kc:1.2,vazao:6,esp:0.30},
+trigo:{kc:1.05,vazao:2,esp:0.20},
+feijao:{kc:1.1,vazao:2.8,esp:0.40}
+};
+
+const nomesCultura=Object.fromEntries(
+Object.keys(baseCulturas).map(k=>[k,k.charAt(0).toUpperCase()+k.slice(1)])
+);
+
+// ================= CLIMA EM TEMPO REAL =================
+async function obterClima(){
+
+if(!navigator.geolocation){
+alert("Geolocalização não suportada");
+return;
+}
+
+document.getElementById('climaInfo').classList.remove('hidden');
+document.getElementById('climaInfo').innerHTML="Obtendo localização...";
+
+navigator.geolocation.getCurrentPosition(async pos=>{
+const lat=pos.coords.latitude;
+const lon=pos.coords.longitude;
+
+try{
+const url=`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
+const resp=await fetch(url);
+const dados=await resp.json();
+
+const temp=dados.current_weather.temperature;
+const vento=dados.current_weather.windspeed;
+
+// estimativa simplificada de ETo (modelo empírico)
+etoAtual=(0.0023*(temp+17)*(Math.sqrt(vento+1))*15);
+
+document.getElementById('climaInfo').innerHTML=
+`📍 Local detectado<br>
+🌡️ Temperatura: ${temp} °C<br>
+💨 Vento: ${vento} km/h<br>
+📊 ETo estimada: ${etoAtual.toFixed(2)} mm/dia`;
+
+}catch(e){
+document.getElementById('climaInfo').innerHTML="Erro ao obter clima — usando valor padrão.";
+}
+});
+}
+
+// ================= CÁLCULO PRINCIPAL =================
 function calcularSistema(){
 
 const potencia=parseFloat(document.getElementById('potencia').value);
@@ -123,62 +96,44 @@ alert('Preencha todos os campos corretamente');
 return;
 }
 
-let vazaoPlanta=2;
-let espacamento=0.3;
+const base=baseCulturas[cultura];
 
-// ================= CULTURAS =================
-
-// Hortaliças
-if(cultura==='alface'){vazaoPlanta=2;espacamento=0.30;}
-else if(cultura==='tomate'){vazaoPlanta=4;espacamento=0.40;}
-else if(cultura==='cenoura'){vazaoPlanta=1.2;espacamento=0.25;}
-else if(cultura==='cebola'){vazaoPlanta=1.0;espacamento=0.20;}
-else if(cultura==='batata'){vazaoPlanta=2.5;espacamento=0.35;}
-else if(cultura==='pepino'){vazaoPlanta=3;espacamento=0.50;}
-else if(cultura==='pimentao'){vazaoPlanta=3.5;espacamento=0.50;}
-else if(cultura==='couve'){vazaoPlanta=2.2;espacamento=0.60;}
-else if(cultura==='beterraba'){vazaoPlanta=1.3;espacamento=0.30;}
-else if(cultura==='rucula'){vazaoPlanta=0.8;espacamento=0.20;}
-
-// Frutíferas
-else if(cultura==='laranja'){vazaoPlanta=40;espacamento=4;}
-else if(cultura==='limao'){vazaoPlanta=35;espacamento=4;}
-else if(cultura==='manga'){vazaoPlanta=60;espacamento=6;}
-else if(cultura==='goiaba'){vazaoPlanta=30;espacamento=4;}
-else if(cultura==='mamao'){vazaoPlanta=15;espacamento=2.5;}
-else if(cultura==='banana'){vazaoPlanta=20;espacamento=3;}
-else if(cultura==='morango'){vazaoPlanta=1.5;espacamento=0.25;}
-else if(cultura==='melancia'){vazaoPlanta=5;espacamento=2;}
-else if(cultura==='melao'){vazaoPlanta=4;espacamento=1.5;}
-else if(cultura==='abacaxi'){vazaoPlanta=2;espacamento=0.40;}
-
-// Grãos
-else if(cultura==='milho'){vazaoPlanta=3.5;espacamento=0.50;}
-else if(cultura==='soja'){vazaoPlanta=2.5;espacamento=0.45;}
-else if(cultura==='arroz'){vazaoPlanta=6;espacamento=0.30;}
-else if(cultura==='trigo'){vazaoPlanta=2;espacamento=0.20;}
-else if(cultura==='feijao'){vazaoPlanta=2.8;espacamento=0.40;}
-
-const plantasPorFileira=Math.floor(comprimento/espacamento);
+const plantasPorFileira=Math.floor(comprimento/base.esp);
 const totalPlantas=plantasPorFileira*fileiras;
-const vazaoTotal=totalPlantas*vazaoPlanta;
-const tuboPrincipal=potencia>=1?'32mm':'25mm';
+const vazaoTotal=totalPlantas*base.vazao;
+const vazaoLinha=vazaoTotal/fileiras;
+
+// ======= ETc PROFISSIONAL =======
+const etc=etoAtual*base.kc;
+const laminaBruta=etc/0.9;
+
+let tuboPrincipal='25mm';
+if(potencia>=2||distancia>200) tuboPrincipal='40mm';
+else if(potencia>=1) tuboPrincipal='32mm';
 
 relatorioTexto=`Projeto de Irrigação - AgroCalc Pro
 
-Cultura: ${cultura}
+Cultura: ${nomesCultura[cultura]}
+ETo utilizada: ${etoAtual.toFixed(2)} mm/dia
+ETc estimada: ${etc.toFixed(2)} mm/dia
+Lâmina bruta: ${laminaBruta.toFixed(2)} mm/dia
+
 Total de plantas: ${Math.round(totalPlantas)}
+Vazão por linha: ${vazaoLinha.toFixed(1)} L/h
 Vazão total: ${Math.round(vazaoTotal)} L/h
+
 Tubulação principal: ${tuboPrincipal}
 Mangueira secundária: 16mm
 Pressão recomendada: 10 a 15 mca
 
-Observação: Conferir curva da bomba para validação final.`;
+Base técnica inspirada em recomendações da Embrapa.
+Validar projeto hidráulico final em campo.`;
 
 document.getElementById('resultado').classList.remove('hidden');
 document.getElementById('resultado').innerHTML=relatorioTexto.replace(/\n/g,'<br>');
 }
 
+// ================= PDF =================
 async function gerarPDF(){
 if(!relatorioTexto){alert('Calcule o projeto primeiro');return;}
 const { jsPDF } = window.jspdf;
@@ -188,6 +143,3 @@ doc.text(linhas,10,10);
 doc.save('Projeto_Irrigacao_AgroCalc.pdf');
 }
 </script>
-
-</body>
-</html>
