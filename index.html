@@ -17,20 +17,28 @@ button:hover {background:#0e3d22;}
 .badge {background:#27ae60; padding:5px 10px; border-radius:20px; font-size:12px;}
 </style>
 </head>
-<body><header>
+<body>
+
+<header>
     <h1>AgroCalc Pro</h1>
     <p>Sistema Profissional de Dimensionamento de Irrigação</p>
-</header><div class="container" id="loginBox">
+</header>
+
+<div class="container" id="loginBox">
     <h2>Acesso ao Sistema</h2>
     <input type="text" id="usuario" placeholder="Usuário">
     <input type="password" id="senha" placeholder="Senha">
     <button onclick="login()">Entrar</button>
     <p><strong>Modo demonstração:</strong> usuário: admin | senha: 1234</p>
-</div><div class="container hidden" id="appBox">
+</div>
+
+<div class="container hidden" id="appBox">
     <div class="topbar">
         <h2>Novo Projeto</h2>
         <span class="badge">Versão Profissional</span>
-    </div><label>Potência da bomba (CV)</label>
+    </div>
+
+<label>Potência da bomba (CV)</label>
 <input type="number" id="potencia">
 
 <label>Distância da bomba até o plantio (m)</label>
@@ -42,6 +50,7 @@ button:hover {background:#0e3d22;}
     <option value="tomate">Tomate</option>
     <option value="morango">Morango</option>
     <option value="banana">Banana</option>
+    <option value="milho">Milho</option>
 </select>
 
 <label>Número de fileiras</label>
@@ -54,8 +63,9 @@ button:hover {background:#0e3d22;}
 <button onclick="gerarPDF()">Gerar PDF do Projeto</button>
 
 <div class="resultado hidden" id="resultado"></div>
+</div>
 
-</div><script>
+<script>
 function login(){
     const u = document.getElementById('usuario').value;
     const s = document.getElementById('senha').value;
@@ -76,35 +86,75 @@ function calcularSistema(){
     const fileiras = parseInt(document.getElementById('fileiras').value);
     const comprimento = parseFloat(document.getElementById('comprimento').value);
 
-    if(!potencia || !distancia || !fileiras || !comprimento){
-        alert('Preencha todos os campos');
+    // validação profissional
+    if(
+        isNaN(potencia) ||
+        isNaN(distancia) ||
+        isNaN(fileiras) ||
+        isNaN(comprimento)
+    ){
+        alert('Preencha todos os campos corretamente');
         return;
     }
 
     let vazaoPlanta, espacamento;
 
-    if(cultura === 'alface'){ vazaoPlanta=2; espacamento=0.30; }
-    else if(cultura === 'tomate'){ vazaoPlanta=4; espacamento=0.40; }
-    else if(cultura === 'morango'){ vazaoPlanta=1.5; espacamento=0.25; }
-    else { vazaoPlanta=8; espacamento=2; }
+    if(cultura === 'alface'){
+        vazaoPlanta = 2;
+        espacamento = 0.30;
+    }
+    else if(cultura === 'tomate'){
+        vazaoPlanta = 4;
+        espacamento = 0.40;
+    }
+    else if(cultura === 'morango'){
+        vazaoPlanta = 1.5;
+        espacamento = 0.25;
+    }
+    else if(cultura === 'milho'){
+        vazaoPlanta = 3.5;   // L/h por planta
+        espacamento = 0.50;  // m
+    }
+    else {
+        vazaoPlanta = 8;
+        espacamento = 2;
+    }
 
-    const plantasPorFileira = comprimento/espacamento;
-    const totalPlantas = plantasPorFileira*fileiras;
-    const vazaoTotal = totalPlantas*vazaoPlanta;
-    const tuboPrincipal = potencia>=1 ? '32mm' : '25mm';
+    const plantasPorFileira = Math.floor(comprimento / espacamento);
+    const totalPlantas = plantasPorFileira * fileiras;
+    const vazaoTotal = totalPlantas * vazaoPlanta;
+    const tuboPrincipal = potencia >= 1 ? '32mm' : '25mm';
 
-    relatorioTexto = `Projeto de Irrigação - AgroCalc Pro\n\nCultura: ${cultura}\nTotal de plantas: ${Math.round(totalPlantas)}\nVazão total: ${Math.round(vazaoTotal)} L/h\nTubulação principal: ${tuboPrincipal}\nMangueira secundária: 16mm\nPressão recomendada: 10 a 15 mca\n\nObservação: Conferir curva da bomba para validação final.`;
+    relatorioTexto = `Projeto de Irrigação - AgroCalc Pro
+
+Cultura: ${cultura}
+Total de plantas: ${Math.round(totalPlantas)}
+Vazão total: ${Math.round(vazaoTotal)} L/h
+Tubulação principal: ${tuboPrincipal}
+Mangueira secundária: 16mm
+Pressão recomendada: 10 a 15 mca
+
+Observação: Conferir curva da bomba para validação final.`;
 
     document.getElementById('resultado').classList.remove('hidden');
     document.getElementById('resultado').innerHTML = relatorioTexto.replace(/\n/g,'<br>');
 }
 
 async function gerarPDF(){
-    if(!relatorioTexto){ alert('Calcule o projeto primeiro'); return; }
+    if(!relatorioTexto){
+        alert('Calcule o projeto primeiro');
+        return;
+    }
+
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
-    doc.text(relatorioTexto, 10, 10);
+
+    const linhas = doc.splitTextToSize(relatorioTexto, 180);
+    doc.text(linhas, 10, 10);
+
     doc.save('Projeto_Irrigacao_AgroCalc.pdf');
 }
-</script></body>
+</script>
+
+</body>
 </html>
