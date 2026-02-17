@@ -176,20 +176,12 @@ const vazaoTotal=totalPlantas*vazaoPlanta; // L/h
 const vazao_m3h=vazaoTotal/1000;
 
 // ===== DIMENSIONAMENTO HIDRÁULICO =====
-
-// perda de carga simplificada (mca)
 const perdaCarga=(distancia/100)*2.5;
-
-// pressão de serviço média
 const pressaoServico=12;
-
-// altura manométrica total
 const HMT=(distancia*0.01)+perdaCarga+pressaoServico;
-
-// potência requerida (fórmula hidráulica simplificada)
 const potenciaNecessaria=(vazao_m3h*HMT)/75;
 
-// seleção automática da bomba
+// ===== SELEÇÃO DA BOMBA =====
 let bombaSugerida="";
 if(potenciaNecessaria<=0.5) bombaSugerida="Bomba 0,5 CV";
 else if(potenciaNecessaria<=1) bombaSugerida="Bomba 1 CV";
@@ -197,9 +189,23 @@ else if(potenciaNecessaria<=2) bombaSugerida="Bomba 2 CV";
 else if(potenciaNecessaria<=3) bombaSugerida="Bomba 3 CV";
 else bombaSugerida="Bomba acima de 3 CV";
 
-const tuboPrincipal=potenciaDisponivel>=1?'32mm':'25mm';
+// ===== SELEÇÃO DE TUBULAÇÃO EFICIENTE =====
+let tuboPrincipal="";
+if(vazaoTotal<1000 && distancia<=50) tuboPrincipal="25mm PVC rígido";
+else if(vazaoTotal<3000 && distancia<=100) tuboPrincipal="32mm PVC rígido";
+else tuboPrincipal="40mm PVC rígido";
 
-// RELATÓRIO
+// Tubulação secundária baseada em área e tipo de cultura
+let tuboSecundario="16mm PEAD flexível";
+if(cultura==='milho'||cultura==='soja'||cultura==='arroz'||cultura==='trigo'||cultura==='feijao') tuboSecundario="20mm PEAD flexível";
+
+// ===== SELEÇÃO DO MÉTODO DE IRRIGAÇÃO (EMBRAPA) =====
+let metodoIrrigacao="Gotejamento"; // padrão
+// Hortaliças e frutas pequenas → gotejamento
+if(cultura==='alface'||cultura==='tomate'||cultura==='cenoura'||cultura==='cebola'||cultura==='batata'||cultura==='pepino'||cultura==='pimentao'||cultura==='couve'||cultura==='beterraba'||cultura==='rucula'||cultura==='morango'||cultura==='abacaxi') metodoIrrigacao="Gotejamento";
+// Frutíferas grandes ou grãos → aspersão
+else if(cultura==='laranja'||cultura==='limao'||cultura==='manga'||cultura==='goiaba'||cultura==='mamao'||cultura==='banana'||cultura==='melancia'||cultura==='melao'||cultura==='milho'||cultura==='soja'||cultura==='arroz'||cultura==='trigo'||cultura==='feijao') metodoIrrigacao="Aspersão";
+
 relatorioTexto=`Projeto de Irrigação - AgroCalc Pro
 
 Cultura: ${cultura}
@@ -214,8 +220,9 @@ Potência hidráulica requerida: ${potenciaNecessaria.toFixed(2)} CV
 --- Seleção automática ---
 Bomba sugerida: ${bombaSugerida}
 Tubulação principal: ${tuboPrincipal}
-Mangueira secundária: 16mm
+Tubulação secundária: ${tuboSecundario}
 Pressão recomendada: 10 a 15 mca
+Método de irrigação recomendado: ${metodoIrrigacao}
 
 Observação: Conferir curva real da bomba para validação final.`;
 
