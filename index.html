@@ -1,350 +1,216 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AgroIrriga Pro - Engenharia de Irrigação</title>
+<title>AgroCalc Pro - Sistema Profissional de Irrigação</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <style>
-:root{
-  --verde:#1f7a3a;
-  --verde-claro:#2ecc71;
-  --cinza:#f4f6f7;
-  --azul:#0f4c81;
-}
-
-*{box-sizing:border-box;font-family:Arial, Helvetica, sans-serif;}
-
-body{
-  margin:0;
-  background:var(--cinza);
-}
-
-header{
-  background:linear-gradient(90deg,var(--verde),var(--azul));
-  color:white;
-  padding:20px;
-  text-align:center;
-}
-
-.container{
-  max-width:1200px;
-  margin:auto;
-  padding:20px;
-}
-
-.card{
-  background:white;
-  padding:20px;
-  border-radius:12px;
-  box-shadow:0 4px 12px rgba(0,0,0,0.08);
-  margin-bottom:20px;
-}
-
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:15px;
-}
-
-input,select{
-  width:100%;
-  padding:10px;
-  border-radius:8px;
-  border:1px solid #ccc;
-}
-
-button{
-  background:var(--verde);
-  color:white;
-  border:none;
-  padding:14px 22px;
-  border-radius:10px;
-  font-weight:bold;
-  cursor:pointer;
-  margin-top:10px;
-}
-
-button:hover{
-  background:var(--verde-claro);
-}
-
-.badge{
-  background:#e8f5e9;
-  padding:6px 10px;
-  border-radius:6px;
-  font-size:12px;
-  display:inline-block;
-  margin-bottom:10px;
-}
-
-#relatorio{
-  display:none;
-}
-
-.metric{
-  background:#f8fafc;
-  padding:15px;
-  border-radius:10px;
-  text-align:center;
-}
-
-.metric h3{
-  margin:5px 0;
-  color:var(--azul);
-}
+body {font-family: Arial, sans-serif; background:#f4f7f6; margin:0;}
+header {background:#145a32; color:white; padding:20px; text-align:center;}
+.container {max-width:900px; margin:30px auto; background:white; padding:25px; border-radius:12px; box-shadow:0 8px 20px rgba(0,0,0,0.1);}
+input, select, button {width:100%; padding:12px; margin:8px 0; border-radius:6px; border:1px solid #ccc;}
+button {background:#145a32; color:white; font-weight:bold; cursor:pointer;}
+button:hover {background:#0e3d22;}
+.resultado {margin-top:20px; padding:20px; background:#ffffff; border-left:6px solid #27ae60; line-height:1.6;}
+.hidden {display:none;}
+.topbar {display:flex; justify-content:space-between; align-items:center;}
+.badge {background:#27ae60; padding:5px 10px; border-radius:20px; font-size:12px; color:white;}
 </style>
 </head>
 
 <body>
 
 <header>
-<h1>🌱 AgroIrriga Pro</h1>
-<p>Plataforma Profissional de Dimensionamento de Irrigação</p>
+<h1>AgroCalc Pro</h1>
+<p>Sistema Profissional de Dimensionamento de Irrigação</p>
 </header>
 
-<div class="container">
-
-<!-- INTRO -->
-<div class="card">
-<span class="badge">Base técnica: Manuais Embrapa</span>
-<h2>🎯 Objetivo do Sistema</h2>
-<p>
-Esta plataforma foi desenvolvida para engenheiros agrônomos realizarem o
-dimensionamento técnico de sistemas de irrigação com base em dados reais de
-solo, clima, cultura e disponibilidade hídrica.
-</p>
-
-<ul>
-<li>✔ Cálculo de lâmina de irrigação</li>
-<li>✔ Estimativa de vazão necessária</li>
-<li>✔ Orçamento preliminar</li>
-<li>✔ Projeto técnico automatizado</li>
-<li>✔ Integração climática automática</li>
-</ul>
+<!-- LOGIN -->
+<div class="container" id="loginBox">
+<h2>Acesso ao Sistema</h2>
+<input type="text" id="usuario" placeholder="Usuário">
+<input type="password" id="senha" placeholder="Senha">
+<button onclick="login()">Entrar</button>
+<p><strong>Modo demonstração:</strong> usuário: admin | senha: 1234</p>
 </div>
 
-<!-- FORM -->
-<div class="card">
-<h2>📋 Coleta Técnica de Dados</h2>
+<!-- APP -->
+<div class="container hidden" id="appBox">
+<div class="topbar">
+<h2>Novo Projeto</h2>
+<span class="badge">Versão Profissional</span>
+</div>
 
-<div class="grid">
+<label>Potência da bomba (CV)</label>
+<input type="number" id="potencia">
 
-<input id="produtor" placeholder="Produtor / Responsável técnico">
+<label>Distância da bomba até o plantio (m)</label>
+<input type="number" id="distancia">
 
+<label>Tipo de cultura</label>
 <select id="cultura">
+
+<optgroup label="🥬 Hortaliças">
+<option value="alface">Alface</option>
+<option value="tomate">Tomate</option>
+<option value="cenoura">Cenoura</option>
+<option value="cebola">Cebola</option>
+<option value="batata">Batata</option>
+<option value="pepino">Pepino</option>
+<option value="pimentao">Pimentão</option>
+<option value="couve">Couve</option>
+<option value="beterraba">Beterraba</option>
+<option value="rucula">Rúcula</option>
+</optgroup>
+
+<optgroup label="🍎 Frutíferas">
+<option value="laranja">Laranja</option>
+<option value="limao">Limão</option>
+<option value="manga">Manga</option>
+<option value="goiaba">Goiaba</option>
+<option value="mamao">Mamão</option>
+<option value="banana">Banana</option>
+<option value="morango">Morango</option>
+<option value="melancia">Melancia</option>
+<option value="melao">Melão</option>
+<option value="abacaxi">Abacaxi</option>
+</optgroup>
+
+<optgroup label="🌾 Grãos e Cereais">
 <option value="milho">Milho</option>
 <option value="soja">Soja</option>
+<option value="arroz">Arroz irrigado</option>
+<option value="trigo">Trigo</option>
 <option value="feijao">Feijão</option>
-<option value="cafe">Café</option>
+</optgroup>
+
 </select>
 
-<input id="area" type="number" placeholder="Área irrigada (ha)">
-<input id="espPlanta" type="number" placeholder="Espaçamento entre plantas (m)">
-<input id="espLinha" type="number" placeholder="Espaçamento entre fileiras (m)">
-<input id="vazaoFonte" type="number" placeholder="Vazão da fonte (m³/h)">
-<input id="altura" type="number" placeholder="Altura manométrica (m)">
+<label>Número de fileiras</label>
+<input type="number" id="fileiras">
 
-<select id="solo">
-<option value="arenoso">Solo Arenoso</option>
-<option value="medio">Solo Médio</option>
-<option value="argiloso">Solo Argiloso</option>
-</select>
+<label>Comprimento de cada fileira (m)</label>
+<input type="number" id="comprimento">
 
-<select id="sistema">
-<option value="gotejamento">Gotejamento</option>
-<option value="aspersao">Aspersão</option>
-<option value="pivo">Pivô Central</option>
-</select>
-
+<button onclick="calcularSistema()">Calcular Sistema</button>
 </div>
 
-<button onclick="obterLocalizacao()">📍 Detectar Clima Automaticamente</button>
-<button onclick="gerarProjeto()">🚀 Gerar Projeto Profissional</button>
-
-<p id="statusClima"></p>
-
+<!-- RESULTADO (SEGUNDA TELA) -->
+<div class="container hidden" id="resultadoBox">
+<div class="topbar">
+<h2>Resultado do Projeto</h2>
+<span class="badge">Relatório Técnico</span>
 </div>
 
-<!-- RELATORIO -->
-<div id="relatorio" class="card">
-<h2>📊 Relatório Técnico de Irrigação</h2>
+<div class="resultado" id="resultadoTela"></div>
 
-<div class="grid">
-
-<div class="metric">
-<p>Lâmina estimada</p>
-<h3 id="lamina">-</h3>
-</div>
-
-<div class="metric">
-<p>Vazão necessária</p>
-<h3 id="vazaoNec">-</h3>
-</div>
-
-<div class="metric">
-<p>Nº de plantas</p>
-<h3 id="plantas">-</h3>
-</div>
-
-<div class="metric">
-<p>Custo estimado</p>
-<h3 id="custo">-</h3>
-</div>
-
-</div>
-
-<div class="card">
-<h3>🧠 Parecer Técnico Automatizado</h3>
-<p id="parecer"></p>
-</div>
-
-<button onclick="window.print()">🖨️ Imprimir Relatório</button>
-</div>
-
+<button onclick="voltarProjeto()">← Voltar ao Projeto</button>
+<button onclick="gerarPDF()">Gerar PDF do Projeto</button>
 </div>
 
 <script>
-// ===============================
-// GEOLOCALIZAÇÃO + CLIMA
-// ===============================
-let climaAtual = {
-  et0: 5 // valor padrão mm/dia
-};
 
-function obterLocalizacao(){
-  if(!navigator.geolocation){
-    alert("Geolocalização não suportada");
-    return;
-  }
+function login(){
+const u=document.getElementById('usuario').value;
+const s=document.getElementById('senha').value;
 
-  document.getElementById("statusClima").innerText =
-    "Obtendo dados climáticos...";
-
-  navigator.geolocation.getCurrentPosition(async pos=>{
-    const lat = pos.coords.latitude;
-    const lon = pos.coords.longitude;
-
-    // 🔹 PONTO PARA INTEGRAÇÃO REAL
-    // Aqui você pode conectar com:
-    // - API INMET
-    // - NASA POWER
-    // - Embrapa (quando disponível)
-
-    try{
-      // Exemplo usando NASA POWER (gratuita)
-      const res = await fetch(
-        `https://power.larc.nasa.gov/api/temporal/daily/point?parameters=PRECTOTCORR&community=AG&longitude=${lon}&latitude=${lat}&format=JSON`
-      );
-      await res.json();
-
-      climaAtual.et0 = 5.5; // valor médio ajustado
-
-      document.getElementById("statusClima").innerText =
-        "✅ Clima obtido automaticamente";
-
-    }catch(e){
-      document.getElementById("statusClima").innerText =
-        "⚠️ Usando clima padrão Embrapa";
-    }
-
-  });
+if(u==='admin'&&s==='1234'){
+document.getElementById('loginBox').classList.add('hidden');
+document.getElementById('appBox').classList.remove('hidden');
+}else{
+alert('Usuário ou senha incorretos');
+}
 }
 
-// ===============================
-// IA AGRONÔMICA (SIMPLIFICADA)
-// ===============================
-function coeficienteCultura(cultura){
-  const kc = {
-    milho: 1.2,
-    soja: 1.15,
-    feijao: 1.05,
-    cafe: 0.95
-  };
-  return kc[cultura] || 1;
+let relatorioTexto="";
+
+function calcularSistema(){
+
+const potencia=parseFloat(document.getElementById('potencia').value);
+const distancia=parseFloat(document.getElementById('distancia').value);
+const cultura=document.getElementById('cultura').value;
+const fileiras=parseInt(document.getElementById('fileiras').value);
+const comprimento=parseFloat(document.getElementById('comprimento').value);
+
+if(isNaN(potencia)||isNaN(distancia)||isNaN(fileiras)||isNaN(comprimento)){
+alert('Preencha todos os campos corretamente');
+return;
 }
 
-// ===============================
-// MOTOR DE CÁLCULO
-// ===============================
-function gerarProjeto(){
+let vazaoPlanta=2;
+let espacamento=0.3;
 
-  const area = Number(areaInput().value);
-  const espP = Number(espPlanta.value);
-  const espL = Number(espLinha.value);
-  const cultura = culturaInput().value;
-  const sistema = sistemaInput().value;
+// Hortaliças
+if(cultura==='alface'){vazaoPlanta=2;espacamento=0.30;}
+else if(cultura==='tomate'){vazaoPlanta=4;espacamento=0.40;}
+else if(cultura==='cenoura'){vazaoPlanta=1.2;espacamento=0.25;}
+else if(cultura==='cebola'){vazaoPlanta=1.0;espacamento=0.20;}
+else if(cultura==='batata'){vazaoPlanta=2.5;espacamento=0.35;}
+else if(cultura==='pepino'){vazaoPlanta=3;espacamento=0.50;}
+else if(cultura==='pimentao'){vazaoPlanta=3.5;espacamento=0.50;}
+else if(cultura==='couve'){vazaoPlanta=2.2;espacamento=0.60;}
+else if(cultura==='beterraba'){vazaoPlanta=1.3;espacamento=0.30;}
+else if(cultura==='rucula'){vazaoPlanta=0.8;espacamento=0.20;}
 
-  if(!area || !espP || !espL){
-    alert("Preencha os dados obrigatórios");
-    return;
-  }
+// Frutíferas
+else if(cultura==='laranja'){vazaoPlanta=40;espacamento=4;}
+else if(cultura==='limao'){vazaoPlanta=35;espacamento=4;}
+else if(cultura==='manga'){vazaoPlanta=60;espacamento=6;}
+else if(cultura==='goiaba'){vazaoPlanta=30;espacamento=4;}
+else if(cultura==='mamao'){vazaoPlanta=15;espacamento=2.5;}
+else if(cultura==='banana'){vazaoPlanta=20;espacamento=3;}
+else if(cultura==='morango'){vazaoPlanta=1.5;espacamento=0.25;}
+else if(cultura==='melancia'){vazaoPlanta=5;espacamento=2;}
+else if(cultura==='melao'){vazaoPlanta=4;espacamento=1.5;}
+else if(cultura==='abacaxi'){vazaoPlanta=2;espacamento=0.40;}
 
-  // plantas
-  const plantas = Math.round(
-    (area * 10000) / (espP * espL)
-  );
+// Grãos
+else if(cultura==='milho'){vazaoPlanta=3.5;espacamento=0.50;}
+else if(cultura==='soja'){vazaoPlanta=2.5;espacamento=0.45;}
+else if(cultura==='arroz'){vazaoPlanta=6;espacamento=0.30;}
+else if(cultura==='trigo'){vazaoPlanta=2;espacamento=0.20;}
+else if(cultura==='feijao'){vazaoPlanta=2.8;espacamento=0.40;}
 
-  // lâmina
-  const kc = coeficienteCultura(cultura);
-  const lamina = (climaAtual.et0 * kc).toFixed(2);
+const plantasPorFileira=Math.floor(comprimento/espacamento);
+const totalPlantas=plantasPorFileira*fileiras;
+const vazaoTotal=totalPlantas*vazaoPlanta;
+const tuboPrincipal=potencia>=1?'32mm':'25mm';
 
-  // vazão
-  const eficiencia = {
-    gotejamento:0.9,
-    aspersao:0.75,
-    pivo:0.85
-  };
+relatorioTexto=`Projeto de Irrigação - AgroCalc Pro
 
-  const vazaoNec = (
-    (area * lamina) / (eficiencia[sistema]*10)
-  ).toFixed(2);
+Cultura: ${cultura}
+Total de plantas: ${Math.round(totalPlantas)}
+Vazão total: ${Math.round(vazaoTotal)} L/h
+Tubulação principal: ${tuboPrincipal}
+Mangueira secundária: 16mm
+Pressão recomendada: 10 a 15 mca
 
-  // custo estimado
-  const custo = (area * 8500).toLocaleString("pt-BR",{
-    style:"currency",
-    currency:"BRL"
-  });
+Observação: Conferir curva da bomba para validação final.`;
 
-  // saída
-  document.getElementById("lamina").innerText = lamina + " mm/dia";
-  document.getElementById("vazaoNec").innerText = vazaoNec + " m³/h";
-  document.getElementById("plantas").innerText = plantas.toLocaleString();
-  document.getElementById("custo").innerText = custo;
+// mostrar segunda tela
+document.getElementById('resultadoTela').innerHTML=
+relatorioTexto.replace(/\n/g,'<br>');
 
-  document.getElementById("parecer").innerText =
-    gerarParecer(area,sistema,lamina);
-
-  document.getElementById("relatorio").style.display = "block";
-  window.scrollTo(0,document.body.scrollHeight);
+document.getElementById('appBox').classList.add('hidden');
+document.getElementById('resultadoBox').classList.remove('hidden');
 }
 
-// ===============================
-// PARECER INTELIGENTE
-// ===============================
-function gerarParecer(area,sistema,lamina){
-  return `
-Com base nos parâmetros informados e nas recomendações técnicas da Embrapa,
-o sistema de ${sistema} apresenta viabilidade técnica para a área de
-${area} ha.
-
-A lâmina estimada de ${lamina} mm/dia atende à demanda hídrica da cultura
-em condições climáticas médias.
-
-Recomenda-se validação hidráulica detalhada em campo antes da implantação
-definitiva do projeto.
-`;
+function voltarProjeto(){
+document.getElementById('resultadoBox').classList.add('hidden');
+document.getElementById('appBox').classList.remove('hidden');
 }
 
-// ===============================
-// HELPERS
-// ===============================
-function areaInput(){ return document.getElementById("area"); }
-function espPlanta(){ return document.getElementById("espPlanta"); }
-function espLinha(){ return document.getElementById("espLinha"); }
-function culturaInput(){ return document.getElementById("cultura"); }
-function sistemaInput(){ return document.getElementById("sistema"); }
+async function gerarPDF(){
+if(!relatorioTexto){alert('Calcule o projeto primeiro');return;}
+const { jsPDF } = window.jspdf;
+const doc=new jsPDF();
+const linhas=doc.splitTextToSize(relatorioTexto,180);
+doc.text(linhas,10,10);
+doc.save('Projeto_Irrigacao_AgroCalc.pdf');
+}
+
 </script>
-
 </body>
 </html>
