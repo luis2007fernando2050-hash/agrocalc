@@ -20,23 +20,23 @@ button:hover {background:#0e3d22;}
 <body>
 
 <header>
-    <h1>AgroCalc Pro</h1>
-    <p>Sistema Profissional de Dimensionamento de Irrigação</p>
+<h1>AgroCalc Pro</h1>
+<p>Sistema Profissional de Dimensionamento de Irrigação</p>
 </header>
 
 <div class="container" id="loginBox">
-    <h2>Acesso ao Sistema</h2>
-    <input type="text" id="usuario" placeholder="Usuário">
-    <input type="password" id="senha" placeholder="Senha">
-    <button onclick="login()">Entrar</button>
-    <p><strong>Modo demonstração:</strong> usuário: admin | senha: 1234</p>
+<h2>Acesso ao Sistema</h2>
+<input type="text" id="usuario" placeholder="Usuário">
+<input type="password" id="senha" placeholder="Senha">
+<button onclick="login()">Entrar</button>
+<p><strong>Modo demonstração:</strong> usuário: admin | senha: 1234</p>
 </div>
 
 <div class="container hidden" id="appBox">
-    <div class="topbar">
-        <h2>Novo Projeto</h2>
-        <span class="badge">Versão Profissional</span>
-    </div>
+<div class="topbar">
+<h2>Novo Projeto</h2>
+<span class="badge">Versão Profissional</span>
+</div>
 
 <label>Potência da bomba (CV)</label>
 <input type="number" id="potencia">
@@ -46,11 +46,44 @@ button:hover {background:#0e3d22;}
 
 <label>Tipo de cultura</label>
 <select id="cultura">
-    <option value="alface">Alface</option>
-    <option value="tomate">Tomate</option>
-    <option value="morango">Morango</option>
-    <option value="banana">Banana</option>
-    <option value="milho">Milho</option>
+
+<!-- HORTALIÇAS -->
+<optgroup label="🥬 Hortaliças">
+<option value="alface">Alface</option>
+<option value="tomate">Tomate</option>
+<option value="cenoura">Cenoura</option>
+<option value="cebola">Cebola</option>
+<option value="batata">Batata</option>
+<option value="pepino">Pepino</option>
+<option value="pimentao">Pimentão</option>
+<option value="couve">Couve</option>
+<option value="beterraba">Beterraba</option>
+<option value="rucula">Rúcula</option>
+</optgroup>
+
+<!-- FRUTÍFERAS -->
+<optgroup label="🍎 Frutíferas">
+<option value="laranja">Laranja</option>
+<option value="limao">Limão</option>
+<option value="manga">Manga</option>
+<option value="goiaba">Goiaba</option>
+<option value="mamao">Mamão</option>
+<option value="banana">Banana</option>
+<option value="morango">Morango</option>
+<option value="melancia">Melancia</option>
+<option value="melao">Melão</option>
+<option value="abacaxi">Abacaxi</option>
+</optgroup>
+
+<!-- GRÃOS -->
+<optgroup label="🌾 Grãos e Cereais">
+<option value="milho">Milho</option>
+<option value="soja">Soja</option>
+<option value="arroz">Arroz irrigado</option>
+<option value="trigo">Trigo</option>
+<option value="feijao">Feijão</option>
+</optgroup>
+
 </select>
 
 <label>Número de fileiras</label>
@@ -67,65 +100,71 @@ button:hover {background:#0e3d22;}
 
 <script>
 function login(){
-    const u = document.getElementById('usuario').value;
-    const s = document.getElementById('senha').value;
-    if(u === 'admin' && s === '1234'){
-        document.getElementById('loginBox').classList.add('hidden');
-        document.getElementById('appBox').classList.remove('hidden');
-    } else {
-        alert('Usuário ou senha incorretos');
-    }
+const u=document.getElementById('usuario').value;
+const s=document.getElementById('senha').value;
+if(u==='admin'&&s==='1234'){
+document.getElementById('loginBox').classList.add('hidden');
+document.getElementById('appBox').classList.remove('hidden');
+}else{alert('Usuário ou senha incorretos');}
 }
 
-let relatorioTexto = "";
+let relatorioTexto="";
 
 function calcularSistema(){
-    const potencia = parseFloat(document.getElementById('potencia').value);
-    const distancia = parseFloat(document.getElementById('distancia').value);
-    const cultura = document.getElementById('cultura').value;
-    const fileiras = parseInt(document.getElementById('fileiras').value);
-    const comprimento = parseFloat(document.getElementById('comprimento').value);
 
-    // validação profissional
-    if(
-        isNaN(potencia) ||
-        isNaN(distancia) ||
-        isNaN(fileiras) ||
-        isNaN(comprimento)
-    ){
-        alert('Preencha todos os campos corretamente');
-        return;
-    }
+const potencia=parseFloat(document.getElementById('potencia').value);
+const distancia=parseFloat(document.getElementById('distancia').value);
+const cultura=document.getElementById('cultura').value;
+const fileiras=parseInt(document.getElementById('fileiras').value);
+const comprimento=parseFloat(document.getElementById('comprimento').value);
 
-    let vazaoPlanta, espacamento;
+if(isNaN(potencia)||isNaN(distancia)||isNaN(fileiras)||isNaN(comprimento)){
+alert('Preencha todos os campos corretamente');
+return;
+}
 
-    if(cultura === 'alface'){
-        vazaoPlanta = 2;
-        espacamento = 0.30;
-    }
-    else if(cultura === 'tomate'){
-        vazaoPlanta = 4;
-        espacamento = 0.40;
-    }
-    else if(cultura === 'morango'){
-        vazaoPlanta = 1.5;
-        espacamento = 0.25;
-    }
-    else if(cultura === 'milho'){
-        vazaoPlanta = 3.5;   // L/h por planta
-        espacamento = 0.50;  // m
-    }
-    else {
-        vazaoPlanta = 8;
-        espacamento = 2;
-    }
+let vazaoPlanta=2;
+let espacamento=0.3;
 
-    const plantasPorFileira = Math.floor(comprimento / espacamento);
-    const totalPlantas = plantasPorFileira * fileiras;
-    const vazaoTotal = totalPlantas * vazaoPlanta;
-    const tuboPrincipal = potencia >= 1 ? '32mm' : '25mm';
+// ================= CULTURAS =================
 
-    relatorioTexto = `Projeto de Irrigação - AgroCalc Pro
+// Hortaliças
+if(cultura==='alface'){vazaoPlanta=2;espacamento=0.30;}
+else if(cultura==='tomate'){vazaoPlanta=4;espacamento=0.40;}
+else if(cultura==='cenoura'){vazaoPlanta=1.2;espacamento=0.25;}
+else if(cultura==='cebola'){vazaoPlanta=1.0;espacamento=0.20;}
+else if(cultura==='batata'){vazaoPlanta=2.5;espacamento=0.35;}
+else if(cultura==='pepino'){vazaoPlanta=3;espacamento=0.50;}
+else if(cultura==='pimentao'){vazaoPlanta=3.5;espacamento=0.50;}
+else if(cultura==='couve'){vazaoPlanta=2.2;espacamento=0.60;}
+else if(cultura==='beterraba'){vazaoPlanta=1.3;espacamento=0.30;}
+else if(cultura==='rucula'){vazaoPlanta=0.8;espacamento=0.20;}
+
+// Frutíferas
+else if(cultura==='laranja'){vazaoPlanta=40;espacamento=4;}
+else if(cultura==='limao'){vazaoPlanta=35;espacamento=4;}
+else if(cultura==='manga'){vazaoPlanta=60;espacamento=6;}
+else if(cultura==='goiaba'){vazaoPlanta=30;espacamento=4;}
+else if(cultura==='mamao'){vazaoPlanta=15;espacamento=2.5;}
+else if(cultura==='banana'){vazaoPlanta=20;espacamento=3;}
+else if(cultura==='morango'){vazaoPlanta=1.5;espacamento=0.25;}
+else if(cultura==='melancia'){vazaoPlanta=5;espacamento=2;}
+else if(cultura==='melao'){vazaoPlanta=4;espacamento=1.5;}
+else if(cultura==='abacaxi'){vazaoPlanta=2;espacamento=0.40;}
+
+// Grãos
+else if(cultura==='milho'){vazaoPlanta=3.5;espacamento=0.50;}
+else if(cultura==='soja'){vazaoPlanta=2.5;espacamento=0.45;}
+else if(cultura==='arroz'){vazaoPlanta=6;espacamento=0.30;}
+else if(cultura==='trigo'){vazaoPlanta=2;espacamento=0.20;}
+else if(cultura==='feijao'){vazaoPlanta=2.8;espacamento=0.40;}
+
+const plantasPorFileira=Math.floor(comprimento/espacamento);
+const totalPlantas=plantasPorFileira*fileiras;
+const vazaoTotal=totalPlantas*vazaoPlanta;
+const tuboPrincipal=potencia>=1?'32mm':'25mm';
+
+relatorioTexto=`Projeto de Irrigação - AgroCalc Pro
 
 Cultura: ${cultura}
 Total de plantas: ${Math.round(totalPlantas)}
@@ -136,23 +175,17 @@ Pressão recomendada: 10 a 15 mca
 
 Observação: Conferir curva da bomba para validação final.`;
 
-    document.getElementById('resultado').classList.remove('hidden');
-    document.getElementById('resultado').innerHTML = relatorioTexto.replace(/\n/g,'<br>');
+document.getElementById('resultado').classList.remove('hidden');
+document.getElementById('resultado').innerHTML=relatorioTexto.replace(/\n/g,'<br>');
 }
 
 async function gerarPDF(){
-    if(!relatorioTexto){
-        alert('Calcule o projeto primeiro');
-        return;
-    }
-
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-
-    const linhas = doc.splitTextToSize(relatorioTexto, 180);
-    doc.text(linhas, 10, 10);
-
-    doc.save('Projeto_Irrigacao_AgroCalc.pdf');
+if(!relatorioTexto){alert('Calcule o projeto primeiro');return;}
+const { jsPDF } = window.jspdf;
+const doc=new jsPDF();
+const linhas=doc.splitTextToSize(relatorioTexto,180);
+doc.text(linhas,10,10);
+doc.save('Projeto_Irrigacao_AgroCalc.pdf');
 }
 </script>
 
