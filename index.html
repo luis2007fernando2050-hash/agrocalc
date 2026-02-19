@@ -1,337 +1,94 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Agrocal - Sistema Profissional de Irrigação</title>
-
-<style>
-body{
-  font-family: Arial, sans-serif;
-  margin:0;
-  background:#f4f6f3;
-}
-
-/* ================= LOGIN ================= */
-#loginBox{
-  height:100vh;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:linear-gradient(135deg,#2e7d32,#66bb6a);
-}
-
-.login-card{
-  background:#fff;
-  padding:40px;
-  border-radius:16px;
-  width:320px;
-  text-align:center;
-  box-shadow:0 10px 30px rgba(0,0,0,0.2);
-}
-
-.logo{
-  font-size:32px;
-  font-weight:bold;
-  color:#2e7d32;
-  margin-bottom:10px;
-}
-
-.sublogo{
-  color:#666;
-  margin-bottom:25px;
-}
-
-input, select{
-  width:100%;
-  padding:10px;
-  margin:6px 0 12px;
-  border-radius:8px;
-  border:1px solid #ccc;
-}
-
-button{
-  width:100%;
-  padding:12px;
-  border:none;
-  border-radius:8px;
-  background:#2e7d32;
-  color:#fff;
-  font-weight:bold;
-  cursor:pointer;
-}
-
-button:hover{ background:#1b5e20; }
-
-.hidden{ display:none; }
-
-/* ================= APP ================= */
-#appBox{
-  padding:20px;
-}
-
-.card{
-  background:#fff;
-  padding:20px;
-  border-radius:12px;
-  box-shadow:0 2px 8px rgba(0,0,0,0.08);
-  margin-bottom:20px;
-}
-
-#resultadoTela{
-  white-space:pre-line;
-}
-</style>
-</head>
-
-<body>
-
-<!-- ================= LOGIN ================= -->
-<div id="loginBox">
-  <div class="login-card">
-    <div class="logo">🌱 Agrocal</div>
-    <div class="sublogo">Sistema Profissional de Irrigação</div>
-
-    <input id="usuario" placeholder="Usuário">
-    <input id="senha" type="password" placeholder="Senha">
-
-    <button onclick="login()">Entrar</button>
+<!-- ================= RESULTADO ================= -->
+<div id="appBox" class="hidden" style="padding:20px;">
+  <div class="card">
+    <h3>📊 Resultado do Projeto</h3>
+    <div id="resultadoTela"></div>
+    <br>
+    <button onclick="voltarProjeto()">← Voltar</button>
   </div>
 </div>
 
-<!-- ================= SISTEMA ================= -->
-<style>
-:root{
-  --verde:#145a32;
-  --verde-claro:#27ae60;
-  --cinza:#f4f7f6;
-  --borda:#e0e0e0;
+<script>
+// ================= LOGIN =================
+function login(){
+  const u=document.getElementById('usuario').value.trim();
+  const s=document.getElementById('senha').value.trim();
+
+  if(u==="admin" && s==="1234"){
+    document.getElementById('loginBox').style.display="none";
+    document.querySelector('.form-wrapper').style.display="block";
+  }else{
+    alert("Usuário ou senha incorretos");
+  }
 }
 
-body{
-  font-family: Arial, sans-serif;
-  background: var(--cinza);
-  margin:0;
-  padding:20px;
+// inicia escondido
+document.querySelector('.form-wrapper').style.display="none";
+
+// ================= CÁLCULO =================
+function calcularSistema(){
+
+  // pegar dados principais
+  const cultura=document.getElementById('culturaPrincipal').value;
+  const areaIrrigada=parseFloat(document.getElementById('areaIrrigada').value)||0;
+  const et0=parseFloat(document.getElementById('et0').value)||0;
+  const kc=parseFloat(document.getElementById('kc').value)||1;
+  const vazaoFonte=parseFloat(document.getElementById('vazaoFonte').value)||0;
+  const desnivel=parseFloat(document.getElementById('desnivel').value)||0;
+
+  if(!cultura || areaIrrigada<=0 || et0<=0){
+    alert("Preencha os dados mínimos.");
+    return;
+  }
+
+  // ================= AGRONOMIA =================
+  const etc = et0 * kc; // mm/dia
+  const area_m2 = areaIrrigada * 10000;
+  const volumeDia_m3 = (etc/1000) * area_m2;
+
+  // ================= HIDRÁULICA =================
+  const vazaoProjeto = volumeDia_m3 / 24; // m3/h estimado
+  const HMT = 12 + desnivel;
+
+  const potenciaCV = (vazaoProjeto * HMT) / 75;
+
+  // método simples por cultura
+  let metodo="Aspersão";
+  if(["Tomate","Alface","Banana","Citros"].includes(cultura)){
+    metodo="Gotejamento";
+  }
+
+  // ================= RELATÓRIO =================
+  const relatorio=`
+PROJETO DE IRRIGAÇÃO — AGROCAL
+
+Cultura: ${cultura}
+Área irrigada: ${areaIrrigada.toFixed(2)} ha
+
+--- Demanda Hídrica ---
+ETc: ${etc.toFixed(2)} mm/dia
+Volume diário: ${volumeDia_m3.toFixed(2)} m³/dia
+
+--- Hidráulica ---
+Vazão de projeto: ${vazaoProjeto.toFixed(2)} m³/h
+HMT estimada: ${HMT.toFixed(2)} mca
+Potência estimada: ${potenciaCV.toFixed(2)} CV
+
+--- Recomendação ---
+Método indicado: ${metodo}
+
+Obs: Pré-dimensionamento técnico.
+`;
+
+  document.getElementById('resultadoTela').textContent = relatorio;
+
+  document.querySelector('.form-wrapper').style.display="none";
+  document.getElementById('appBox').classList.remove('hidden');
 }
 
-/* CONTAINER */
-.form-wrapper{
-  max-width:1200px;
-  margin:auto;
+// ================= VOLTAR =================
+function voltarProjeto(){
+  document.getElementById('appBox').classList.add('hidden');
+  document.querySelector('.form-wrapper').style.display="block";
 }
-
-/* CARD */
-.card{
-  background:#fff;
-  border-radius:14px;
-  padding:20px;
-  margin-bottom:20px;
-  box-shadow:0 6px 18px rgba(0,0,0,0.08);
-  border-left:6px solid var(--verde);
-}
-
-/* TÍTULOS */
-.card h3{
-  margin-top:0;
-  color:var(--verde);
-}
-
-/* GRID */
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:12px;
-}
-
-/* CAMPOS */
-label{
-  font-size:13px;
-  font-weight:bold;
-  color:#333;
-}
-
-input, select, textarea{
-  width:100%;
-  padding:10px;
-  border-radius:8px;
-  border:1px solid var(--borda);
-  font-size:14px;
-  background:#fafafa;
-}
-
-input:focus, select:focus, textarea:focus{
-  outline:none;
-  border-color:var(--verde-claro);
-  background:#fff;
-}
-
-/* BOTÃO */
-.btn-calcular{
-  background:var(--verde);
-  color:white;
-  border:none;
-  padding:16px;
-  font-size:18px;
-  font-weight:bold;
-  border-radius:12px;
-  cursor:pointer;
-  width:100%;
-  margin-top:20px;
-  transition:.2s;
-}
-
-.btn-calcular:hover{
-  background:#0e3d22;
-  transform:translateY(-1px);
-}
-
-/* HEADER */
-.form-header{
-  text-align:center;
-  margin-bottom:25px;
-}
-
-.badge{
-  display:inline-block;
-  background:var(--verde-claro);
-  color:white;
-  padding:4px 12px;
-  border-radius:20px;
-  font-size:12px;
-  margin-top:5px;
-}
-</style>
-
-<div class="form-wrapper">
-
-<div class="form-header">
-  <h2>🌱 Levantamento Técnico de Irrigação</h2>
-  <span class="badge">Padrão Profissional</span>
-</div>
-
-<!-- IDENTIFICAÇÃO -->
-<div class="card">
-<h3>1️⃣ Identificação da Propriedade</h3>
-<div class="grid">
-<div><label>Produtor</label><input id="produtor"></div>
-<div><label>Propriedade</label><input id="propriedade"></div>
-<div><label>Município / UF</label><input id="municipioUF"></div>
-<div><label>Coordenadas</label><input id="coordenadas"></div>
-<div><label>Área total (ha)</label><input type="number" id="areaTotal"></div>
-<div><label>Área irrigada (ha)</label><input type="number" id="areaIrrigada"></div>
-<div><label>Data da visita</label><input type="date" id="dataVisita"></div>
-<div><label>Responsável técnico</label><input id="responsavelTecnico"></div>
-</div>
-</div>
-
-<!-- CULTURA -->
-<div class="card">
-<h3>2️⃣ Cultura</h3>
-<div class="grid">
-<div>
-<label>Cultura principal</label>
-<select id="culturaPrincipal">
-<option value="">Selecione</option>
-<option>Milho</option>
-<option>Soja</option>
-<option>Feijão</option>
-<option>Tomate</option>
-<option>Alface</option>
-<option>Banana</option>
-<option>Citros</option>
-<option>Pastagem</option>
-</select>
-</div>
-<div><label>Variedade</label><input id="variedade"></div>
-<div><label>Espaçamento linhas (m)</label><input type="number" step="0.01" id="espLinhas"></div>
-<div><label>Espaçamento plantas (m)</label><input type="number" step="0.01" id="espPlantas"></div>
-<div><label>Estágio fenológico</label><input id="estagio"></div>
-<div><label>Profundidade radicular (cm)</label><input type="number" id="profRaiz"></div>
-<div><label>Kc</label><input type="number" step="0.01" id="kc"></div>
-</div>
-</div>
-
-<!-- SOLO -->
-<div class="card">
-<h3>3️⃣ Solo</h3>
-<div class="grid">
-<div><label>Classe do solo</label><input id="classeSolo"></div>
-<div>
-<label>Textura</label>
-<select id="textura">
-<option>Arenosa</option>
-<option>Média</option>
-<option>Argilosa</option>
-</select>
-</div>
-<div><label>Capacidade de campo (%)</label><input type="number" id="cc"></div>
-<div><label>PMP (%)</label><input type="number" id="pmp"></div>
-<div><label>CAD (mm/m)</label><input type="number" id="cad"></div>
-<div><label>Infiltração (mm/h)</label><input type="number" id="infiltracao"></div>
-<div><label>Profundidade do solo (cm)</label><input type="number" id="profSolo"></div>
-</div>
-</div>
-
-<!-- TOPOGRAFIA -->
-<div class="card">
-<h3>4️⃣ Topografia</h3>
-<div class="grid">
-<div><label>Declividade (%)</label><input type="number" id="declividade"></div>
-<div><label>Desnível geométrico (m)</label><input type="number" id="desnivel"></div>
-<div><label>Comprimento das linhas (m)</label><input type="number" id="comprimentoLinhas"></div>
-</div>
-</div>
-
-<!-- ÁGUA -->
-<div class="card">
-<h3>5️⃣ Fonte de Água</h3>
-<div class="grid">
-<div>
-<label>Manancial</label>
-<select id="manancial">
-<option>Poço</option>
-<option>Rio</option>
-<option>Açude</option>
-<option>Represa</option>
-</select>
-</div>
-<div><label>Vazão disponível (m³/h)</label><input type="number" id="vazaoFonte"></div>
-<div><label>Distância até área (m)</label><input type="number" id="distanciaFonte"></div>
-<div><label>Qualidade da água</label><input id="qualidadeAgua"></div>
-</div>
-</div>
-
-<!-- CLIMA -->
-<div class="card">
-<h3>6️⃣ Clima</h3>
-<div class="grid">
-<div><label>ET0 (mm/dia)</label><input type="number" step="0.01" id="et0"></div>
-<div><label>Precipitação anual (mm)</label><input type="number" id="precipitacao"></div>
-<div><label>Velocidade do vento (m/s)</label><input type="number" step="0.01" id="vento"></div>
-</div>
-</div>
-
-<!-- ENERGIA -->
-<div class="card">
-<h3>7️⃣ Energia</h3>
-<div class="grid">
-<div>
-<label>Tipo</label>
-<select id="tipoEnergia">
-<option>Elétrica</option>
-<option>Diesel</option>
-<option>Solar</option>
-</select>
-</div>
-<div><label>Tarifa (R$/kWh)</label><input type="number" step="0.01" id="tarifaEnergia"></div>
-<div><label>Horas por dia</label><input type="number" id="horasDia"></div>
-<div><label>Dias por mês</label><input type="number" id="diasMes"></div>
-</div>
-</div>
-
-<button class="btn-calcular" onclick="calcularSistema()">
-🚀 Calcular Projeto de Irrigação
-</button>
-
-</div>
+</script>
