@@ -100,244 +100,238 @@ button:hover{ background:#1b5e20; }
 </div>
 
 <!-- ================= SISTEMA ================= -->
-<div id="appBox" class="hidden">
+<style>
+:root{
+  --verde:#145a32;
+  --verde-claro:#27ae60;
+  --cinza:#f4f7f6;
+  --borda:#e0e0e0;
+}
 
-  <div class="card">
-    <h2>Dados do Projeto</h2>
+body{
+  font-family: Arial, sans-serif;
+  background: var(--cinza);
+  margin:0;
+  padding:20px;
+}
 
-    <label>Nome do Produtor</label>
-    <input id="nomeProdutor">
+/* CONTAINER */
+.form-wrapper{
+  max-width:1200px;
+  margin:auto;
+}
 
-    <label>Nome do Agrônomo</label>
-    <input id="nomeAgronomo">
+/* CARD */
+.card{
+  background:#fff;
+  border-radius:14px;
+  padding:20px;
+  margin-bottom:20px;
+  box-shadow:0 6px 18px rgba(0,0,0,0.08);
+  border-left:6px solid var(--verde);
+}
 
-    <label>Cidade</label>
-    <input id="cidade">
+/* TÍTULOS */
+.card h3{
+  margin-top:0;
+  color:var(--verde);
+}
 
-    <label>Município</label>
-    <input id="municipio">
+/* GRID */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:12px;
+}
 
-    <label>Cultura</label>
-    <select id="cultura">
-      <option value="milho">Milho</option>
-      <option value="soja">Soja</option>
-      <option value="tomate">Tomate</option>
-      <option value="alface">Alface</option>
-      <option value="feijao">Feijão</option>
-      <option value="banana">Banana</option>
-    </select>
+/* CAMPOS */
+label{
+  font-size:13px;
+  font-weight:bold;
+  color:#333;
+}
 
-    <label>Clima</label>
-    <select id="clima">
-      <option value="tropical">Tropical</option>
-      <option value="semiarido">Semiárido</option>
-      <option value="equatorial">Equatorial</option>
-      <option value="temperado">Temperado</option>
-    </select>
+input, select, textarea{
+  width:100%;
+  padding:10px;
+  border-radius:8px;
+  border:1px solid var(--borda);
+  font-size:14px;
+  background:#fafafa;
+}
 
-    <label>Nº de fileiras</label>
-    <input id="fileiras" type="number">
+input:focus, select:focus, textarea:focus{
+  outline:none;
+  border-color:var(--verde-claro);
+  background:#fff;
+}
 
-    <label>Comprimento da linha (m)</label>
-    <input id="comprimento" type="number">
+/* BOTÃO */
+.btn-calcular{
+  background:var(--verde);
+  color:white;
+  border:none;
+  padding:16px;
+  font-size:18px;
+  font-weight:bold;
+  border-radius:12px;
+  cursor:pointer;
+  width:100%;
+  margin-top:20px;
+  transition:.2s;
+}
 
-    <label>Distância da adutora (m)</label>
-    <input id="distancia" type="number">
+.btn-calcular:hover{
+  background:#0e3d22;
+  transform:translateY(-1px);
+}
 
-    <label>Potência disponível (CV)</label>
-    <input id="potencia" type="number">
+/* HEADER */
+.form-header{
+  text-align:center;
+  margin-bottom:25px;
+}
 
-    <label>Tarifa de energia (R$/kWh)</label>
-    <input id="precoEnergia" type="number" step="0.01">
+.badge{
+  display:inline-block;
+  background:var(--verde-claro);
+  color:white;
+  padding:4px 12px;
+  border-radius:20px;
+  font-size:12px;
+  margin-top:5px;
+}
+</style>
 
-    <button onclick="calcularSistema()">Calcular Sistema</button>
-  </div>
+<div class="form-wrapper">
 
+<div class="form-header">
+  <h2>🌱 Levantamento Técnico de Irrigação</h2>
+  <span class="badge">Padrão Profissional</span>
 </div>
 
-<!-- ================= RESULTADO ================= -->
-<div id="resultadoBox" class="hidden">
-  <div class="card">
-    <h2>Relatório Técnico</h2>
-    <div id="resultadoTela"></div>
-    <br>
-    <button onclick="voltarProjeto()">Voltar</button>
-    <button onclick="gerarPDF()">Gerar PDF</button>
-  </div>
+<!-- IDENTIFICAÇÃO -->
+<div class="card">
+<h3>1️⃣ Identificação da Propriedade</h3>
+<div class="grid">
+<div><label>Produtor</label><input id="produtor"></div>
+<div><label>Propriedade</label><input id="propriedade"></div>
+<div><label>Município / UF</label><input id="municipioUF"></div>
+<div><label>Coordenadas</label><input id="coordenadas"></div>
+<div><label>Área total (ha)</label><input type="number" id="areaTotal"></div>
+<div><label>Área irrigada (ha)</label><input type="number" id="areaIrrigada"></div>
+<div><label>Data da visita</label><input type="date" id="dataVisita"></div>
+<div><label>Responsável técnico</label><input id="responsavelTecnico"></div>
+</div>
 </div>
 
-<!-- jsPDF -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<!-- CULTURA -->
+<div class="card">
+<h3>2️⃣ Cultura</h3>
+<div class="grid">
+<div>
+<label>Cultura principal</label>
+<select id="culturaPrincipal">
+<option value="">Selecione</option>
+<option>Milho</option>
+<option>Soja</option>
+<option>Feijão</option>
+<option>Tomate</option>
+<option>Alface</option>
+<option>Banana</option>
+<option>Citros</option>
+<option>Pastagem</option>
+</select>
+</div>
+<div><label>Variedade</label><input id="variedade"></div>
+<div><label>Espaçamento linhas (m)</label><input type="number" step="0.01" id="espLinhas"></div>
+<div><label>Espaçamento plantas (m)</label><input type="number" step="0.01" id="espPlantas"></div>
+<div><label>Estágio fenológico</label><input id="estagio"></div>
+<div><label>Profundidade radicular (cm)</label><input type="number" id="profRaiz"></div>
+<div><label>Kc</label><input type="number" step="0.01" id="kc"></div>
+</div>
+</div>
 
-<script>
-document.addEventListener("DOMContentLoaded", function(){
+<!-- SOLO -->
+<div class="card">
+<h3>3️⃣ Solo</h3>
+<div class="grid">
+<div><label>Classe do solo</label><input id="classeSolo"></div>
+<div>
+<label>Textura</label>
+<select id="textura">
+<option>Arenosa</option>
+<option>Média</option>
+<option>Argilosa</option>
+</select>
+</div>
+<div><label>Capacidade de campo (%)</label><input type="number" id="cc"></div>
+<div><label>PMP (%)</label><input type="number" id="pmp"></div>
+<div><label>CAD (mm/m)</label><input type="number" id="cad"></div>
+<div><label>Infiltração (mm/h)</label><input type="number" id="infiltracao"></div>
+<div><label>Profundidade do solo (cm)</label><input type="number" id="profSolo"></div>
+</div>
+</div>
 
-let relatorioTexto="";
+<!-- TOPOGRAFIA -->
+<div class="card">
+<h3>4️⃣ Topografia</h3>
+<div class="grid">
+<div><label>Declividade (%)</label><input type="number" id="declividade"></div>
+<div><label>Desnível geométrico (m)</label><input type="number" id="desnivel"></div>
+<div><label>Comprimento das linhas (m)</label><input type="number" id="comprimentoLinhas"></div>
+</div>
+</div>
 
-/* ================= LOGIN ================= */
-window.login=function(){
-  const u=document.getElementById('usuario').value.trim();
-  const s=document.getElementById('senha').value.trim();
+<!-- ÁGUA -->
+<div class="card">
+<h3>5️⃣ Fonte de Água</h3>
+<div class="grid">
+<div>
+<label>Manancial</label>
+<select id="manancial">
+<option>Poço</option>
+<option>Rio</option>
+<option>Açude</option>
+<option>Represa</option>
+</select>
+</div>
+<div><label>Vazão disponível (m³/h)</label><input type="number" id="vazaoFonte"></div>
+<div><label>Distância até área (m)</label><input type="number" id="distanciaFonte"></div>
+<div><label>Qualidade da água</label><input id="qualidadeAgua"></div>
+</div>
+</div>
 
-  if(u==="admin" && s==="1234"){
-    document.getElementById('loginBox').classList.add('hidden');
-    document.getElementById('appBox').classList.remove('hidden');
-  }else{
-    alert("Usuário ou senha incorretos");
-  }
-};
+<!-- CLIMA -->
+<div class="card">
+<h3>6️⃣ Clima</h3>
+<div class="grid">
+<div><label>ET0 (mm/dia)</label><input type="number" step="0.01" id="et0"></div>
+<div><label>Precipitação anual (mm)</label><input type="number" id="precipitacao"></div>
+<div><label>Velocidade do vento (m/s)</label><input type="number" step="0.01" id="vento"></div>
+</div>
+</div>
 
-/* ================= FUNÇÕES ================= */
-function perdaCargaHazenWilliams(Q_m3h,D_mm,L_m){
-  if(Q_m3h<=0) return 0;
-  const Q=Q_m3h/3600;
-  const D=D_mm/1000;
-  const C=140;
-  return 10.67*L_m*Math.pow(Q,1.852)/
-         (Math.pow(C,1.852)*Math.pow(D,4.87));
-}
+<!-- ENERGIA -->
+<div class="card">
+<h3>7️⃣ Energia</h3>
+<div class="grid">
+<div>
+<label>Tipo</label>
+<select id="tipoEnergia">
+<option>Elétrica</option>
+<option>Diesel</option>
+<option>Solar</option>
+</select>
+</div>
+<div><label>Tarifa (R$/kWh)</label><input type="number" step="0.01" id="tarifaEnergia"></div>
+<div><label>Horas por dia</label><input type="number" id="horasDia"></div>
+<div><label>Dias por mês</label><input type="number" id="diasMes"></div>
+</div>
+</div>
 
-function escolherDiametro(Q_m3h){
-  const diam=[25,32,40,50,63,75];
-  for(let d of diam){
-    const area=Math.PI*Math.pow(d/1000,2)/4;
-    const v=(Q_m3h/3600)/area;
-    if(v<=1.5) return d;
-  }
-  return 75;
-}
+<button class="btn-calcular" onclick="calcularSistema()">
+🚀 Calcular Projeto de Irrigação
+</button>
 
-function etcEstimado(cultura,clima){
-  let base=4;
-  if(clima==="semiarido") base=7;
-  else if(clima==="tropical") base=5;
-  else if(clima==="equatorial") base=6;
-  else if(clima==="temperado") base=4;
-
-  const kc={
-    milho:1.15, soja:1.1, tomate:1.15,
-    alface:1.0, feijao:1.05, banana:1.2
-  };
-
-  return base*(kc[cultura]||1.0);
-}
-
-/* ================= CÁLCULO ================= */
-window.calcularSistema=function(){
-
-const potenciaDisponivel=parseFloat(document.getElementById('potencia').value)||0;
-const distancia=parseFloat(document.getElementById('distancia').value)||0;
-const cultura=document.getElementById('cultura').value;
-const fileiras=parseInt(document.getElementById('fileiras').value)||0;
-const comprimento=parseFloat(document.getElementById('comprimento').value)||0;
-const clima=document.getElementById('clima').value;
-const nomeProdutor=document.getElementById('nomeProdutor').value.trim();
-const nomeAgronomo=document.getElementById('nomeAgronomo').value.trim();
-const cidade=document.getElementById('cidade').value.trim();
-const municipio=document.getElementById('municipio').value.trim();
-const precoEnergia=parseFloat(document.getElementById('precoEnergia').value)||0;
-
-if(!nomeProdutor||!nomeAgronomo||!cidade||!municipio||
-   fileiras<=0||comprimento<=0||precoEnergia<=0){
-  alert("Preencha todos os campos corretamente.");
-  return;
-}
-
-/* --- Dados cultura --- */
-let vazaoPlanta=3.5;
-let espacamento=0.5;
-
-if(cultura==="tomate"){vazaoPlanta=4;espacamento=0.4;}
-if(cultura==="alface"){vazaoPlanta=2;espacamento=0.3;}
-if(cultura==="soja"){vazaoPlanta=2.5;espacamento=0.45;}
-if(cultura==="feijao"){vazaoPlanta=2.8;espacamento=0.4;}
-
-/* --- Agronomia --- */
-const plantasPorFileira=Math.max(1,Math.floor(comprimento/espacamento));
-const totalPlantas=plantasPorFileira*fileiras;
-
-const vazaoTotal=totalPlantas*vazaoPlanta;
-const vazao_m3h=vazaoTotal/1000;
-
-const espacamentoLinhas=0.8;
-const area=Math.max(1,fileiras*comprimento*espacamentoLinhas);
-
-const etc=etcEstimado(cultura,clima);
-const volumeDia=(etc/1000)*area;
-
-let tempoIrrigacao=volumeDia/(vazao_m3h||1);
-if(!isFinite(tempoIrrigacao)||tempoIrrigacao<=0) tempoIrrigacao=1;
-
-/* --- Hidráulica --- */
-const diametro=escolherDiametro(vazao_m3h);
-const perdaCarga=perdaCargaHazenWilliams(vazao_m3h,diametro,distancia);
-
-const HMT=12+perdaCarga+(distancia*0.01);
-
-const eficiencia=0.65;
-const potenciaNecessaria=(vazao_m3h*HMT)/(75*eficiencia);
-
-const bombaSugerida=Math.ceil(Math.max(0.5,potenciaNecessaria))+" CV";
-
-const metodoIrrigacao=
-(cultura==="alface"||cultura==="tomate")?
-"Gotejamento":"Aspersão";
-
-/* --- Energia --- */
-const kW=potenciaNecessaria*0.7355;
-const custoEnergia=(kW*tempoIrrigacao*30*precoEnergia).toFixed(2);
-
-/* --- Relatório --- */
-relatorioTexto=`Projeto de Irrigação - Agrocal
-
-Produtor: ${nomeProdutor}
-Engenheiro Agrônomo: ${nomeAgronomo}
-Cidade: ${cidade} / ${municipio}
-
-Cultura: ${cultura}
-Total de plantas: ${totalPlantas}
-Vazão total: ${Math.round(vazaoTotal)} L/h
-
---- Dimensionamento Hidráulico ---
-Diâmetro principal: ${diametro} mm PEAD
-Perda de carga: ${perdaCarga.toFixed(2)} mca
-HMT: ${HMT.toFixed(2)} mca
-Potência requerida: ${potenciaNecessaria.toFixed(2)} CV
-Bomba sugerida: ${bombaSugerida}
-Método recomendado: ${metodoIrrigacao}
-
---- Manejo ---
-ETc estimada: ${etc.toFixed(2)} mm/dia
-Tempo diário estimado: ${tempoIrrigacao.toFixed(2)} h/dia
-
---- Energia ---
-Custo mensal estimado: R$ ${custoEnergia}
-
-Obs: Pré-dimensionamento técnico. Validar curva real da bomba.`;
-
-document.getElementById('resultadoTela').innerText=relatorioTexto;
-
-document.getElementById('appBox').classList.add('hidden');
-document.getElementById('resultadoBox').classList.remove('hidden');
-};
-
-/* ================= OUTROS ================= */
-window.voltarProjeto=function(){
-  document.getElementById('resultadoBox').classList.add('hidden');
-  document.getElementById('appBox').classList.remove('hidden');
-};
-
-window.gerarPDF=async function(){
-  if(!relatorioTexto){alert("Calcule primeiro");return;}
-  const { jsPDF }=window.jspdf;
-  const doc=new jsPDF();
-  const linhas=doc.splitTextToSize(relatorioTexto,180);
-  doc.text(linhas,10,10);
-  doc.save("Projeto_Irrigacao_Agrocal.pdf");
-};
-
-});
-</script>
-
-</body>
-</html>
+</div>
