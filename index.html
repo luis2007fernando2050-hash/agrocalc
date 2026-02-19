@@ -1,3 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agrocal - Sistema de Irrigação</title>
+
+<style>
+body{
+  margin:0;
+  font-family: Arial, sans-serif;
+  background:#f4f6f5;
+}
+
+/* ===== TELA LOGIN ===== */
+#telaLogin{
+  height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:linear-gradient(135deg,#2e7d32,#66bb6a);
+}
+
+.login-box{
+  background:#fff;
+  padding:40px;
+  border-radius:16px;
+  width:320px;
+  text-align:center;
+  box-shadow:0 10px 30px rgba(0,0,0,0.25);
+}
+
+.logo{
+  font-size:32px;
+  font-weight:bold;
+  color:#2e7d32;
+  margin-bottom:10px;
+}
+
+.sublogo{
+  color:#666;
+  margin-bottom:25px;
+}
+
+.login-box input{
+  width:100%;
+  padding:12px;
+  margin:8px 0;
+  border-radius:8px;
+  border:1px solid #ccc;
+  font-size:15px;
+}
+
+.login-box button{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border:none;
+  border-radius:8px;
+  background:#2e7d32;
+  color:#fff;
+  font-size:16px;
+  font-weight:bold;
+  cursor:pointer;
+  transition:.2s;
+}
+
+.login-box button:hover{
+  background:#1b5e20;
+}
+
+/* ===== SISTEMA ===== */
+#sistema{
+  display:none;
+  padding:20px;
+}
+
+h2{
+  color:#2e7d32;
+}
+
+#resultado{
+  margin-top:20px;
+  padding:15px;
+  background:#fff;
+  border-radius:8px;
+  box-shadow:0 0 5px #ccc;
+}
+</style>
+</head>
+
+<body>
+
+<!-- ================= LOGIN ================= -->
+<div id="telaLogin">
+  <div class="login-box">
+
+    <!-- 🔰 SUA LOGO (troque se quiser) -->
+    <div class="logo">🌱 Agrocal</div>
+    <div class="sublogo">Tecnologia em Irrigação</div>
+
+    <input type="text" id="usuario" placeholder="Usuário">
+    <input type="password" id="senha" placeholder="Senha">
+
+    <button onclick="fazerLogin()">Entrar</button>
+  </div>
+</div>
+
+<!-- ================= SISTEMA ================= -->
+<div id="sistema">
+
+<h2>Calculadora de Sistema de Irrigação</h2>
+
+<label>Escolha a cultura:</label>
+<select id="cultura">
+  <option value="">-- Selecione --</option>
+  <option value="horta">Horta</option>
+  <option value="pomar">Pomar</option>
+  <option value="gramado">Gramado</option>
+  <option value="pastagem">Pastagem</option>
+</select>
+
+<label>Área a irrigar (m²):</label>
+<input type="number" id="area" placeholder="Ex: 5000">
+
+<button onclick="gerarSistema()">Gerar Sistema</button>
+
+<div id="resultado"></div>
+
+</div>
+
+<script>
+// ================= LOGIN =================
+function fazerLogin(){
+  const user = document.getElementById("usuario").value;
+  const pass = document.getElementById("senha").value;
+
+  // 🔐 Login simples (você pode mudar)
+  if(user === "admin" && pass === "123"){
+    document.getElementById("telaLogin").style.display="none";
+    document.getElementById("sistema").style.display="block";
+  }else{
+    alert("Usuário ou senha incorretos");
+  }
+}
+
+// ================= DADOS CULTURA =================
+const culturas = {
+  horta: { irrigacao:"gotejamento", lamina:5 },
+  pomar: { irrigacao:"gotejamento", lamina:5 },
+  gramado: { irrigacao:"aspersao", lamina:10 },
+  pastagem: { irrigacao:"aspersao", lamina:10 }
+};
+
+// ================= FUNÇÃO PRINCIPAL =================
+function gerarSistema(){
+
+  const cultura = document.getElementById('cultura').value;
+  const area = parseFloat(document.getElementById('area').value);
+
+  if(!cultura || !area || area<=0){
+    alert("Preencha corretamente os dados.");
+    return;
+  }
+
+  const dados = culturas[cultura];
+  const lamina_m = dados.lamina/1000;
+  const vazao_m3_dia = area * lamina_m;
+  const vazao_L_s = (vazao_m3_dia*1000)/(24*60*60);
+
+  let html = `<h3>Resultado do Sistema</h3>`;
+  html += `<p><b>Cultura:</b> ${cultura}</p>`;
+  html += `<p><b>Irrigação:</b> ${dados.irrigacao}</p>`;
+  html += `<p><b>Vazão:</b> ${vazao_m3_dia.toFixed(2)} m³/dia</p>`;
+
+  document.getElementById("resultado").innerHTML = html;
+}
+</script>
+
+</body>
+</html>
 <style>
 :root{
   --verde:#145a32;
