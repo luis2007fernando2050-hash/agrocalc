@@ -1,360 +1,217 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AgroCalc Pro - Sistema Profissional de Irrigação</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<div class="container">
 
-<style>
-body {font-family: Arial, sans-serif; background:#f4f7f6; margin:0;}
-header {background:#145a32; color:white; padding:20px; text-align:center;}
-.container {max-width:900px; margin:30px auto; background:white; padding:25px; border-radius:12px; box-shadow:0 8px 20px rgba(0,0,0,0.1);}
-input, select, button {width:100%; padding:12px; margin:8px 0; border-radius:6px; border:1px solid #ccc;}
-button {background:#145a32; color:white; font-weight:bold; cursor:pointer;}
-button:hover {background:#0e3d22;}
-.resultado {margin-top:20px; padding:20px; background:#ffffff; border-left:6px solid #27ae60; line-height:1.6;}
-.hidden {display:none;}
-.topbar {display:flex; justify-content:space-between; align-items:center;}
-.badge {background:#27ae60; padding:5px 10px; border-radius:20px; font-size:12px; color:white;}
-canvas {border:1px solid #ccc; margin-top:15px;}
-</style>
-</head>
+<h2>📋 Levantamento Técnico para Projeto de Irrigação</h2>
 
-<body>
+<!-- ================= IDENTIFICAÇÃO ================= -->
+<h3>1️⃣ Identificação da Propriedade</h3>
 
-<header>
-<h1>AgroCalc Pro</h1>
-<p>Sistema Profissional de Dimensionamento de Irrigação</p>
-</header>
+<label>Proprietário</label>
+<input type="text" id="produtor">
 
-<!-- LOGIN -->
-<div class="container" id="loginBox">
-<h2>Acesso ao Sistema</h2>
-<input type="text" id="usuario" placeholder="Usuário">
-<input type="password" id="senha" placeholder="Senha">
-<button onclick="login()">Entrar</button>
-<p><strong>Modo demonstração:</strong> usuário: admin | senha: 1234</p>
-</div>
+<label>Nome da propriedade</label>
+<input type="text" id="propriedade">
 
-<!-- APP -->
-<div class="container hidden" id="appBox">
-<div class="topbar">
-<h2>Novo Projeto</h2>
-<span class="badge">Versão Profissional</span>
-</div>
+<label>Município / UF</label>
+<input type="text" id="municipioUF">
 
-<label>Nome do Produtor</label>
-<input type="text" id="nomeProdutor">
+<label>Coordenadas geográficas</label>
+<input type="text" id="coordenadas">
 
-<label>Engenheiro Agrônomo</label>
-<input type="text" id="nomeAgronomo">
+<label>Área total da propriedade (ha)</label>
+<input type="number" id="areaTotal">
 
-<label>Cidade</label>
-<input type="text" id="cidade">
+<label>Área a ser irrigada (ha)</label>
+<input type="number" id="areaIrrigada">
 
-<label>Município</label>
-<input type="text" id="municipio">
+<label>Data da visita</label>
+<input type="date" id="dataVisita">
 
-<label>Preço da energia (R$/kWh)</label>
-<input type="number" id="precoEnergia" step="0.01">
+<label>Responsável técnico</label>
+<input type="text" id="responsavelTecnico">
 
-<label>Potência da bomba disponível (CV)</label>
-<input type="number" id="potencia">
 
-<label>Distância da bomba até o plantio (m)</label>
-<input type="number" id="distancia">
+<!-- ================= CULTURA ================= -->
+<h3>2️⃣ Caracterização da Cultura</h3>
 
-<label>Tipo de cultura</label>
-<select id="cultura">
-<option value="">-- Selecione --</option>
-<option value="alface">Alface</option>
-<option value="tomate">Tomate</option>
-<option value="cenoura">Cenoura</option>
-<option value="cebola">Cebola</option>
-<option value="batata">Batata</option>
-<option value="pepino">Pepino</option>
-<option value="pimentao">Pimentão</option>
-<option value="couve">Couve</option>
-<option value="beterraba">Beterraba</option>
-<option value="rucula">Rúcula</option>
-<option value="laranja">Laranja</option>
-<option value="limao">Limão</option>
-<option value="manga">Manga</option>
-<option value="goiaba">Goiaba</option>
-<option value="mamao">Mamão</option>
-<option value="banana">Banana</option>
-<option value="morango">Morango</option>
-<option value="melancia">Melancia</option>
-<option value="melao">Melão</option>
-<option value="abacaxi">Abacaxi</option>
-<option value="milho">Milho</option>
-<option value="soja">Soja</option>
-<option value="arroz">Arroz irrigado</option>
-<option value="trigo">Trigo</option>
-<option value="feijao">Feijão</option>
+<label>Cultura principal</label>
+<select id="culturaPrincipal">
+<option value="">Selecione</option>
+<option>Milho</option>
+<option>Soja</option>
+<option>Feijão</option>
+<option>Tomate</option>
+<option>Alface</option>
+<option>Banana</option>
+<option>Citros</option>
+<option>Pastagem</option>
 </select>
 
-<label>Número de fileiras</label>
-<input type="number" id="fileiras">
+<label>Variedade</label>
+<input type="text" id="variedade">
 
-<label>Comprimento de cada fileira (m)</label>
-<input type="number" id="comprimento">
+<label>Espaçamento entre linhas (m)</label>
+<input type="number" step="0.01" id="espLinhas">
 
-<label>Clima da região</label>
-<select id="clima">
-<option value="semiarido">Semiárido</option>
-<option value="tropical">Tropical</option>
-<option value="equatorial">Equatorial</option>
-<option value="temperado">Temperado</option>
+<label>Espaçamento entre plantas (m)</label>
+<input type="number" step="0.01" id="espPlantas">
+
+<label>Estágio fenológico</label>
+<input type="text" id="estagio">
+
+<label>Profundidade efetiva das raízes (cm)</label>
+<input type="number" id="profRaiz">
+
+<label>Coeficiente de cultura (Kc)</label>
+<input type="number" step="0.01" id="kc">
+
+
+<!-- ================= SOLO ================= -->
+<h3>3️⃣ Caracterização do Solo</h3>
+
+<label>Classe do solo</label>
+<input type="text" id="classeSolo">
+
+<label>Textura</label>
+<select id="textura">
+<option value="">Selecione</option>
+<option>Arenosa</option>
+<option>Média</option>
+<option>Argilosa</option>
 </select>
 
-<button onclick="calcularSistema()">Calcular Sistema</button>
+<label>Capacidade de campo (%)</label>
+<input type="number" step="0.01" id="cc">
+
+<label>Ponto de murcha permanente (%)</label>
+<input type="number" step="0.01" id="pmp">
+
+<label>Água disponível - CAD (mm/m)</label>
+<input type="number" id="cad">
+
+<label>Taxa de infiltração básica (mm/h)</label>
+<input type="number" id="infiltracao">
+
+<label>Profundidade efetiva do solo (cm)</label>
+<input type="number" id="profSolo">
+
+
+<!-- ================= TOPOGRAFIA ================= -->
+<h3>4️⃣ Topografia da Área</h3>
+
+<label>Declividade média (%)</label>
+<input type="number" step="0.01" id="declividade">
+
+<label>Desnível geométrico (m)</label>
+<input type="number" step="0.01" id="desnivel">
+
+<label>Comprimento médio das linhas (m)</label>
+<input type="number" id="comprimentoLinhas">
+
+
+<!-- ================= FONTE DE ÁGUA ================= -->
+<h3>5️⃣ Fonte de Água</h3>
+
+<label>Tipo de manancial</label>
+<select id="manancial">
+<option value="">Selecione</option>
+<option>Poço</option>
+<option>Rio</option>
+<option>Açude</option>
+<option>Represa</option>
+<option>Outro</option>
+</select>
+
+<label>Vazão disponível (m³/h)</label>
+<input type="number" step="0.01" id="vazaoFonte">
+
+<label>Distância até a área irrigada (m)</label>
+<input type="number" id="distanciaFonte">
+
+<label>Qualidade da água (observações)</label>
+<input type="text" id="qualidadeAgua">
+
+
+<!-- ================= SISTEMA DE IRRIGAÇÃO ================= -->
+<h3>6️⃣ Sistema de Irrigação Pretendido</h3>
+
+<label>Método</label>
+<select id="metodo">
+<option value="">Selecione</option>
+<option>Gotejamento</option>
+<option>Microaspersão</option>
+<option>Aspersão convencional</option>
+<option>Pivô central</option>
+<option>Sulco</option>
+</select>
+
+<label>Eficiência esperada (%)</label>
+<input type="number" id="eficiencia">
+
+<label>Pressão de serviço do emissor (mca)</label>
+<input type="number" step="0.01" id="pressaoEmissor">
+
+<label>Vazão do emissor (L/h)</label>
+<input type="number" step="0.01" id="vazaoEmissor">
+
+<label>Espaçamento entre emissores (m)</label>
+<input type="number" step="0.01" id="espEmissores">
+
+<label>Número de setores</label>
+<input type="number" id="setores">
+
+
+<!-- ================= BOMBEAMENTO ================= -->
+<h3>7️⃣ Sistema de Bombeamento</h3>
+
+<label>Altura de sucção (m)</label>
+<input type="number" step="0.01" id="sucção">
+
+<label>Altura de recalque (m)</label>
+<input type="number" step="0.01" id="recalque">
+
+<label>Rendimento da bomba (%)</label>
+<input type="number" id="rendBomba">
+
+<label>Potência disponível (CV)</label>
+<input type="number" step="0.01" id="potenciaDisp">
+
+
+<!-- ================= CLIMA ================= -->
+<h3>8️⃣ Dados Climáticos</h3>
+
+<label>Evapotranspiração de referência — ET0 (mm/dia)</label>
+<input type="number" step="0.01" id="et0">
+
+<label>Precipitação média anual (mm)</label>
+<input type="number" id="precipitacao">
+
+<label>Velocidade média do vento (m/s)</label>
+<input type="number" step="0.01" id="vento">
+
+
+<!-- ================= ENERGIA ================= -->
+<h3>9️⃣ Energia</h3>
+
+<label>Tipo de energia</label>
+<select id="tipoEnergia">
+<option>Elétrica</option>
+<option>Diesel</option>
+<option>Solar</option>
+</select>
+
+<label>Tarifa de energia (R$/kWh)</label>
+<input type="number" step="0.01" id="tarifaEnergia">
+
+<label>Horas disponíveis por dia</label>
+<input type="number" step="0.01" id="horasDia">
+
+<label>Dias de operação por mês</label>
+<input type="number" id="diasMes">
+
+
+<!-- ================= OBSERVAÇÕES ================= -->
+<h3>🔟 Observações Gerais</h3>
+
+<textarea id="observacoes" rows="4" style="width:100%;"></textarea>
+
 </div>
-
-<!-- RESULTADO -->
-<div class="container hidden" id="resultadoBox">
-<div class="topbar">
-<h2>Resultado do Projeto</h2>
-<span class="badge">Relatório Técnico</span>
-</div>
-
-<div class="resultado" id="resultadoTela"></div>
-
-<canvas id="canvasProjeto" width="800" height="400"></canvas>
-<button onclick="baixarImagem()">Baixar Diagrama do Projeto</button>
-
-<button onclick="voltarProjeto()">← Voltar ao Projeto</button>
-<button onclick="gerarPDF()">Gerar PDF do Projeto</button>
-</div>
-
-<script>
-document.addEventListener("DOMContentLoaded", function(){  
-
-let relatorioTexto = "";  
-
-// ===================== LOGIN =====================  
-window.login = function(){  
-const u=document.getElementById('usuario').value.trim();  
-const s=document.getElementById('senha').value.trim();  
-
-if(u==="admin" && s==="1234"){  
-document.getElementById('loginBox').classList.add('hidden');  
-document.getElementById('appBox').classList.remove('hidden');  
-}else{  
-alert("Usuário ou senha incorretos");  
-}  
-};  
-
-// ===================== FUNÇÕES TÉCNICAS =====================  
-function perdaCargaHazenWilliams(Q_m3h,D_mm,L_m){  
-if(Q_m3h<=0) return 0;  
-const Q=Q_m3h/3600;  
-const D=D_mm/1000;  
-const C=140;  
-return 10.67*L_m*Math.pow(Q,1.852)/  
-(Math.pow(C,1.852)*Math.pow(D,4.87));  
-}  
-
-function escolherDiametro(Q_m3h){  
-const diam=[25,32,40,50,63,75];  
-for(let d of diam){  
-const area=Math.PI*Math.pow(d/1000,2)/4;  
-const v=(Q_m3h/3600)/area;  
-if(v<=1.5) return d;  
-}  
-return 75;  
-}  
-
-function etcEstimado(cultura,clima){  
-let base=4;  
-if(clima==="semiarido") base=7;  
-else if(clima==="tropical") base=5;  
-else if(clima==="equatorial") base=6;  
-else if(clima==="temperado") base=4;  
-
-const kc={  
-milho:1.15, soja:1.1, tomate:1.15,  
-alface:1.0, feijao:1.05, banana:1.2  
-};  
-
-return base*(kc[cultura]||1.0);  
-}  
-
-// Parâmetros de irrigação por cultura
-const irrigacaoCultura = {
-alface:{tipo:"gotejamento", gotejador:2, pressao:"1–2 bar"},
-tomate:{tipo:"gotejamento", gotejador:2, pressao:"1–2 bar"},
-cenoura:{tipo:"gotejamento", gotejador:2, pressao:"1–2 bar"},
-cebola:{tipo:"gotejamento", gotejador:2, pressao:"1–2 bar"},
-batata:{tipo:"gotejamento", gotejador:2, pressao:"1–2 bar"},
-pepino:{tipo:"gotejamento", gotejador:3, pressao:"1–2 bar"},
-pimentao:{tipo:"gotejamento", gotejador:3, pressao:"1–2 bar"},
-couve:{tipo:"gotejamento", gotejador:2, pressao:"1–2 bar"},
-beterraba:{tipo:"gotejamento", gotejador:1.5, pressao:"1–2 bar"},
-rucula:{tipo:"gotejamento", gotejador:1, pressao:"1–2 bar"},
-laranja:{tipo:"gotejamento", gotejador:35, pressao:"2–3 bar"},
-limao:{tipo:"gotejamento", gotejador:30, pressao:"2–3 bar"},
-manga:{tipo:"gotejamento", gotejador:60, pressao:"2–3 bar"},
-goiaba:{tipo:"gotejamento", gotejador:30, pressao:"2–3 bar"},
-mamao:{tipo:"gotejamento", gotejador:15, pressao:"2–3 bar"},
-banana:{tipo:"gotejamento", gotejador:20, pressao:"2–3 bar"},
-morango:{tipo:"gotejamento", gotejador:1.5, pressao:"1–2 bar"},
-melancia:{tipo:"aspersao", gotejador:5, pressao:"2–3 bar"},
-melao:{tipo:"aspersao", gotejador:4, pressao:"2–3 bar"},
-abacaxi:{tipo:"gotejamento", gotejador:2, pressao:"1–2 bar"},
-milho:{tipo:"aspersao", gotejador:3.5, pressao:"2–3 bar"},
-soja:{tipo:"aspersao", gotejador:2.5, pressao:"2–3 bar"},
-arroz:{tipo:"aspersao", gotejador:6, pressao:"2–3 bar"},
-trigo:{tipo:"aspersao", gotejador:2, pressao:"2–3 bar"},
-feijao:{tipo:"aspersao", gotejador:2.8, pressao:"2–3 bar"},
-};
-
-// ===================== CÁLCULO PRINCIPAL =====================  
-window.calcularSistema = function(){  
-
-const potenciaDisponivel=parseFloat(document.getElementById('potencia').value)||0;  
-const distancia=parseFloat(document.getElementById('distancia').value)||0;  
-const cultura=document.getElementById('cultura').value;  
-const fileiras=parseInt(document.getElementById('fileiras').value)||0;  
-const comprimento=parseFloat(document.getElementById('comprimento').value)||0;  
-const clima=document.getElementById('clima').value;  
-const nomeProdutor=document.getElementById('nomeProdutor').value.trim();  
-const nomeAgronomo=document.getElementById('nomeAgronomo').value.trim();  
-const cidade=document.getElementById('cidade').value.trim();  
-const municipio=document.getElementById('municipio').value.trim();  
-const precoEnergia=parseFloat(document.getElementById('precoEnergia').value)||0;  
-
-if(!nomeProdutor||!nomeAgronomo||!cidade||!municipio||fileiras<=0||comprimento<=0||precoEnergia<=0||!cultura){  
-alert("Preencha todos os campos corretamente.");  
-return;  
-}  
-
-const irrigacao = irrigacaoCultura[cultura];
-
-// ---------- Agronomia ----------
-let vazaoPlanta = irrigacao.gotejador;
-let espacamento = 0.5;
-const plantasPorFileira=Math.max(1,Math.floor(comprimento/espacamento));  
-const totalPlantas=plantasPorFileira*fileiras;  
-const vazaoTotal=totalPlantas*vazaoPlanta;  
-const vazao_m3h=vazaoTotal/1000;  
-const espacamentoLinhas=0.8;  
-const area=Math.max(1,fileiras*comprimento*espacamentoLinhas);  
-const etc=etcEstimado(cultura,clima);  
-const volumeDia=(etc/1000)*area;  
-let tempoIrrigacao = volumeDia/(vazao_m3h||1);  
-if(!isFinite(tempoIrrigacao)||tempoIrrigacao<=0) tempoIrrigacao=1;  
-
-// ---------- Hidráulica ----------
-const diametro=escolherDiametro(vazao_m3h);  
-const perdaCarga=perdaCargaHazenWilliams(vazao_m3h,diametro,distancia);  
-const HMT=12+perdaCarga+(distancia*0.01);  
-const eficiencia=0.65;  
-const potenciaNecessaria=(vazao_m3h*HMT)/(75*eficiencia);  
-const bombaSugerida=Math.ceil(Math.max(0.5,potenciaNecessaria))+" CV";  
-
-// ---------- Energia ----------
-const kW=potenciaNecessaria*0.7355;  
-const custoEnergia=(kW*tempoIrrigacao*30*precoEnergia).toFixed(2);  
-
-// ---------- Relatório ----------
-relatorioTexto=`Projeto de Irrigação - AgroCalc Pro  
-
-Produtor: ${nomeProdutor}  
-Engenheiro Agrônomo: ${nomeAgronomo}  
-Cidade: ${cidade} / ${municipio}  
-
-Cultura: ${cultura}  
-Total de plantas: ${totalPlantas}  
-Vazão total: ${Math.round(vazaoTotal)} L/h  
-
---- Dimensionamento Hidráulico ---  
-Diâmetro principal: ${diametro} mm PEAD  
-Perda de carga: ${perdaCarga.toFixed(2)} mca  
-HMT: ${HMT.toFixed(2)} mca  
-Potência requerida: ${potenciaNecessaria.toFixed(2)} CV  
-Bomba sugerida: ${bombaSugerida}  
-Método recomendado: ${irrigacao.tipo}  
-Pressão recomendada: ${irrigacao.pressao}  
-
---- Manejo ---  
-ETc estimada: ${etc.toFixed(2)} mm/dia  
-Tempo diário estimado: ${tempoIrrigacao.toFixed(2)} h/dia  
-
---- Energia ---  
-Custo mensal estimado: R$ ${custoEnergia}  
-
-Obs: Pré-dimensionamento técnico. Validar curva real da bomba.`;  
-
-document.getElementById('resultadoTela').innerHTML=relatorioTexto.replace(/\n/g,"<br>");  
-
-// ================ DESENHO DO PROJETO ================
-function desenharProjeto(totalFileiras, comprimento, diametro, metodo){
-  const canvas = document.getElementById('canvasProjeto');
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-
-  // Bomba
-  ctx.fillStyle = '#145a32';
-  ctx.fillRect(50,180,30,30);
-  ctx.fillStyle = 'white';
-  ctx.fillText('Bomba', 50,225);
-
-  // Tubulação principal
-  ctx.strokeStyle = '#000';
-  ctx.lineWidth = diametro/10;
-  ctx.beginPath();
-  ctx.moveTo(80,195);
-  ctx.lineTo(700,195);
-  ctx.stroke();
-
-  // Fileiras
-  const espaco = 300 / totalFileiras;
-  for(let i=0;i<totalFileiras;i++){
-    ctx.strokeStyle = metodo==='Gotejamento'?'blue':'green';
-    ctx.lineWidth=2;
-    ctx.beginPath();
-    ctx.moveTo(100,50 + i*espaco);
-    ctx.lineTo(700,50 + i*espaco);
-    ctx.stroke();
-  }
-
-  // Legenda
-  ctx.fillStyle='black';
-  ctx.fillText('Método: '+metodo,600,30);
-  ctx.fillText('Tubulação: '+diametro+' mm',600,50);
-}
-desenharProjeto(fileiras, comprimento, diametro, irrigacao.tipo);
-
-window.baixarImagem=function(){
-  const canvas=document.getElementById('canvasProjeto');
-  const link=document.createElement('a');
-  link.download='Projeto_Irrigacao.png';
-  link.href=canvas.toDataURL();
-  link.click();
-};
-
-document.getElementById('appBox').classList.add('hidden');
-document.getElementById('resultadoBox').classList.remove('hidden');
-};  
-
-// ===================== OUTROS =====================  
-window.voltarProjeto=function(){  
-document.getElementById('resultadoBox').classList.add('hidden');  
-document.getElementById('appBox').classList.remove('hidden');  
-};  
-
-window.gerarPDF=async function(){  
-if(!relatorioTexto){alert("Calcule primeiro");return;}  
-const { jsPDF }=window.jspdf;  
-const doc=new jsPDF();  
-const linhas=doc.splitTextToSize(relatorioTexto,180);  
-doc.text(linhas,10,10);  
-doc.save("Projeto_Irrigacao_AgroCalc.pdf");  
-};  
-
-});  
-</script>
-</body>
-</html>
